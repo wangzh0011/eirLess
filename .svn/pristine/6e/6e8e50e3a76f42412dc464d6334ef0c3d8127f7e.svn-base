@@ -1,0 +1,9 @@
+package io.renren.modules.miniapp.service;
+
+import com.baomidou.mybatisplus.service.IService;
+import io.renren.modules.miniapp.entity.ChangeLog;
+
+
+public interface ChangeLogService extends IService<ChangeLog> {
+    public void insertValue(String logType, String logDtl, String logStatus, String updTime, String voyCd);
+}

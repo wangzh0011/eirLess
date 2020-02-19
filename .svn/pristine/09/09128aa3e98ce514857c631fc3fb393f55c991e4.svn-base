@@ -1,0 +1,110 @@
+package io.renren.modules.miniapp.controller;
+
+import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import io.renren.common.utils.R;
+import io.renren.modules.miniapp.entity.Order;
+import io.renren.modules.miniapp.service.OrderService;
+import io.renren.modules.miniapp.ws.client.service.CMSInfo;
+import io.renren.modules.sys.service.SysConfigService;
+import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by timmy.deng on 2019/3/18.
+ */
+@RestController
+@RequestMapping("/miniApp")
+public class signController {
+
+    @Autowired
+    private OrderService orderService;
+    @Autowired
+    private SysConfigService sysConfigService;
+
+
+    @RequestMapping(value = "/checkSite")
+    public R RunCheckSite(String site){
+        System.out.println(site);
+        if(site.equals("D")){
+            String sysRun = sysConfigService.getValue("sysRun_D");
+            if (sysRun.equals("YES")){
+                return R.ok();
+            }else {
+                return R.error(sysRun);
+            }
+        }
+        if (site.equals("I")){
+            String sysRun = sysConfigService.getValue("sysRun_I");
+            if (sysRun.equals("YES")){
+                return R.ok();
+            }else {
+                return R.error(sysRun);
+            }
+        }
+
+
+        return R.error("系统错误,未能获取到作业地点");
+    }
+
+    @RequestMapping(value = "/sign")//headers = "application/json;charset=UTF-8"
+    public R getCms(String plate, String openid){
+        System.out.println(openid);
+        List<Order> ls = orderService.selectList(new EntityWrapper<Order>().eq("OPEN_ID",openid).in("state", new Object[]{"1", "2", "7", "6"}).orderBy("id", true));
+        String site;
+        if (ls.size()==0){
+            return R.error("系统未查询到预约飞单,无法签到!");
+        }
+        else {
+            site=ls.get(0).getSite();
+
+            if (site.equals("D")){
+                return R.error("内贸暂不支持签到!");
+            }
+        }
+        System.out.println(site);
+        Map map=new HashMap();
+        map.put("type","sign");
+        map.put("plate",plate);
+
+        JaxWsProxyFactoryBean jaxWsProxyFactoryBean = new JaxWsProxyFactoryBean();
+
+        //根据site向内贸或者外贸请求签到
+        jaxWsProxyFactoryBean.setAddress("http://pcc:8081/webservices/cmsinfo?wsdl");
+
+
+        jaxWsProxyFactoryBean.setServiceClass(CMSInfo.class);
+        CMSInfo cs = (CMSInfo) jaxWsProxyFactoryBean.create();
+        String result = cs.getCMSByLic(JSON.toJSONString(map));
+        System.out.println("返回: "+result);
+
+        map=JSON.parseObject(result,Map.class);
+        //Documents documents;
+        if (map.get("code").equals("1")){ //失败
+            return R.error((String) map.get("msg"));
+        }else { //成功
+            return R.ok((String)map.get("msg"));
+        }
+
+    }
+
+    public static void main(String[] args) {
+
+        Map map=new HashMap();
+        map.put("type","sign");
+        map.put("plate","GDBAM158Y");
+
+        JaxWsProxyFactoryBean jaxWsProxyFactoryBean = new JaxWsProxyFactoryBean();
+        jaxWsProxyFactoryBean.setAddress("http://pcc:8081/webservices/cmsinfo?wsdl");
+        jaxWsProxyFactoryBean.setServiceClass(CMSInfo.class);
+        CMSInfo cs = (CMSInfo) jaxWsProxyFactoryBean.create();
+        String result = cs.getCMSByLic(JSON.toJSONString(map));
+        System.out.println("返回: "+result);
+    }
+}

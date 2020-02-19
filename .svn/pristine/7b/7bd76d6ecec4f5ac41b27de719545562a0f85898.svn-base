@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>飞单</title>
+    <#include "/header.html">
+    <link rel="stylesheet" href="${request.contextPath}/statics/css/bootstrap-table.min.css">
+    <link rel="stylesheet" href="${request.contextPath}/statics/plugins/treegrid/jquery.treegrid.css">
+    <link rel="stylesheet" href="${request.contextPath}/statics/css/viewer.min.css">
+    <link rel="stylesheet" href="${request.contextPath}/statics/css/main.css">
+</head>
+<style>
+
+
+    #nav {
+        /*width: 150px;*/
+        /*height: 100px;*/
+        border: 1px solid ;
+        position: fixed;
+        left: 0;
+        top: 30%;
+        z-index: 1000000000;
+        font-size: xx-large;
+        color: rgb(255,0,102);
+    }
+</style>
+<body>
+
+
+<div id="rrapp">
+    <div class="grid-btn">
+        <div class="form-group col-sm-2">
+            <input type="text" class="form-control" v-model="plate" @keyup.enter="unLock" placeholder="车牌号码">
+        </div>
+        <a class="btn btn-default" @click="unLock">解除锁定</a>
+        <a class="btn btn-default" @click="update">刷新数据</a>
+    </div>
+
+    <table id="menuTable" data-mobile-responsive="true" data-click-to-select="true">
+        <thead>
+        <tr>
+            <th data-field="selectItem" data-checkbox="true"></th>
+        </tr>
+        </thead>
+    </table>
+
+    <div id="eirLess" style="display: none;" class="flex">
+
+        <div id="nav">{{order.plate}}</div>
+
+        <div class="item-left">
+            <p style="display: inline-block">
+                <span>预约号:</span>
+                <span class="text-muted"> {{order.id}}</span>
+            </p>
+            <p style="display: inline-block">
+                <span>司机:</span>
+                <span class="text-muted"> {{order.userName}}</span>
+            </p>
+            <p style="display: inline-block">
+                <span>车牌: </span>
+                <span class="text-muted"> {{order.plate}}</span>
+            </p>
+            <p style="display: inline-block">
+                <span>手机:</span>
+                <span class="text-muted"> {{order.phone}}</span>
+            </p>
+
+            <p style="display: inline-block">
+                <span>可推送次数:</span>
+                <span class="text-muted" v-model="count">{{count}} </span>
+            </p>
+            <!--
+            <span class="text-primary"style="font-size: larger">danger</span>
+
+            <span class="text-success"style="font-size: xx-large">danger</span>
+            <table class="table table-bordered table-hove">
+                <tr>
+                    <td class="active">车牌号码:</td>
+                    <td class="active">姓名:</td>
+                    <td class="active">车牌号码:</td>
+                    <td class="active">手机号码:</td>
+                </tr>
+
+            </table>
+           -->
+            <ul id="viewer" style="display: inline-block;">
+                <li>
+                    <img :data-original='order.eirImg'
+                         :src='order.eirImg'>
+                </li>
+            </ul>
+
+        </div>
+        <div class="item-right">
+            <a class="btn btn-default"
+               style="width: 90% ;margin-top: 20px;margin-bottom:10px " @click="open">
+                &nbsp;操作记录<i class="fa fa-angle-double-right"></i>
+            </a>
+
+
+            <form>
+                <table class="table table-bordered table-hove">
+                    <tr>
+                        <td style="width: 100px">作业类型：</td>
+                        <td>{{order.tranType}}</td>
+
+                    </tr>
+                    <tr>
+                        <td style="width: 100px">处理状态：</td>
+                        <td><span class="label label-success">{{order.state}}</span></td>
+                    </tr>
+                    <tr>
+                        <td style="width: 100px">预约时间：</td>
+                        <td>{{order.appointmentTime}}</td>
+                    </tr>
+                </table>
+            </form>
+            <div class="pics">
+                <span>封条照片</span>
+                <ul id="viewer2">
+                    <li>
+                        <img :data-original='order.sealImg'
+                             :src='order.sealImg'>
+                    </li>
+                </ul>
+
+            </div>
+
+            <div class="pics">
+                <span>附属证明材料照片</span>
+                <ul id="viewer3">
+                    <li>
+                        <img :data-original='order.attachImg'
+                             :src='order.attachImg'>
+                    </li>
+                </ul>
+            </div>
+
+
+            <div class="form-group">
+                <label for="formGroupExampleInput2">备注信息</label>
+                <textarea type="text" class="form-control" id="formGroupExampleInput2" style="height: 50px" placeholder="备注信息" v-model="selectMsg">{{selectMsg}}</textarea>
+            </div>
+
+            <select class="custom-select" @click="select" id="select">
+                <option value="0" selected>选择模板</option>
+
+
+                <option v-for="item in template " :value="item.content">{{item.name}}</option>
+
+                <!--                <option value="您的内贸飞单已审核通过，请按预约时间进闸签到，以激活作业。签到前请先完成验箱及可能的费用处理。"  >审核通过模板信息</option>
+                                <option value="审核不通过模板信息">审核不通过模板</option>
+                                <option value="挂起原因">挂起</option>-->
+            </select>
+
+            <div class="btnGroup">
+                <a class="btn btn-primary" @click="pass" v-if="order.state == '待审核'">审核通过</a>
+                <a class="btn btn-primary" @click="nopass" v-if="order.state == '待审核'">审核不通过</a>
+                <a class="btn btn-primary" @click="handup" v-if="order.state == '待审核'">挂起</a>
+
+                <a class="btn btn-primary" style="width: 30%" @click="cancel" v-if="order.state == '待码头取消'">取消</a>
+
+                <a class="btn btn-primary" @click="confirm" v-if="order.state == '待进闸确认'">进闸确认</a>
+                <a class="btn btn-primary" @click="cancel" v-if="order.state == '待进闸确认'">取消</a>
+
+                <a class="btn btn-primary" @click="reConfirm" v-if="order.state == '待复核'">复核</a>
+
+            </div>
+        </div>
+    </div>
+</div>
+<script src="${request.contextPath}/statics/libs/bootstrap-table.min.js"></script>
+<script src="${request.contextPath}/statics/plugins/treegrid/jquery.treegrid.min.js"></script>
+<script src="${request.contextPath}/statics/plugins/treegrid/jquery.treegrid.bootstrap3.js"></script>
+<script src="${request.contextPath}/statics/plugins/treegrid/jquery.treegrid.extension.js"></script>
+<script src="${request.contextPath}/statics/plugins/treegrid/tree.table.js"></script>
+<script src="${request.contextPath}/statics/js/viewer.min.js"></script>
+<script src="${request.contextPath}/statics/js/viewer-jquery.min.js"></script>
+<script type="text/javascript" src="${request.contextPath}/statics/libs/jquery.cookie.js"></script>
+
+<script src="${request.contextPath}/statics/js/modules/sys/eirLess.js?_${.now?long}"></script>
+<!--<script type="text/javascript" src="${request.contextPath}/statics/js/index1.js"></script>-->
+</body>
+</html>

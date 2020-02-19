@@ -1,0 +1,111 @@
+package io.renren.modules.eir.controller;
+
+import com.alibaba.fastjson.JSON;
+import io.renren.common.utils.PageUtils;
+import io.renren.common.utils.R;
+import io.renren.modules.miniapp.service.FormIdService;
+import io.renren.modules.miniapp.service.FormIdServicec;
+import io.renren.modules.miniapp.service.WXUserService;
+import io.renren.modules.miniapp.service.WXUserServicec;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.text.SimpleDateFormat;
+import java.util.Map;
+
+/**
+ * Created by timmy.deng on 2018/10/9.
+ */
+@RestController
+@RequestMapping("wx/user")
+public class appController {
+    @Autowired
+    public WXUserService wxUserService;
+
+    @Autowired
+    public WXUserServicec wxUserServicec;
+
+
+    @Autowired
+    FormIdService formIdService;
+
+    @Autowired
+    FormIdServicec formIdServicec;
+
+    public SimpleDateFormat format =new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+
+    @RequestMapping("/list")
+    public R list(@RequestParam Map<String, Object> params) {
+        System.out.println(JSON.toJSONString(params));
+        PageUtils page = wxUserService.queryPage(params);
+        System.out.println(page.getList().size());
+        return R.ok().put("page", page);
+    }
+
+
+/*    @RequestMapping("/copyUser")
+
+    public R copyUser(){
+
+        //获取源数据
+
+        List<WXUserc> lsc = wxUserServicec.selectList(new EntityWrapper<WXUserc>());
+
+        List<WXUser> ls = new ArrayList<>();
+
+        for (WXUserc wxUserc : lsc) {
+            WXUser user = new WXUser();
+            user.setPhone(wxUserc.getPhone());
+            user.setPlate(wxUserc.getPlate());
+            user.setOpenid(wxUserc.getOpenid());
+            user.setUserName(wxUserc.getUserName());
+            user.setUpdateTime(wxUserc.getUpdateTime());
+            user.setCreateTime(wxUserc.getCreateTime());
+            user.setUserCardId(wxUserc.getUserCardId());
+
+            ls.add(user);
+        }
+
+        if (null != ls&&ls.size()>0){
+            wxUserService.insertBatch(ls);
+        }
+
+
+        return R.ok("成功复制了"+ls.size()+"条用户数据!");
+    }*/
+/*    @RequestMapping("/copyFromId")
+    public R copyFromId(){
+
+        //获取源数据
+
+        List<FormIdc> lsc = formIdServicec.selectList(new EntityWrapper<FormIdc>());
+
+        List<FormId> ls = new ArrayList<>();
+
+        for (FormIdc l : lsc) {
+            FormId it= new FormId();
+            it.setCreateTime(l.getCreateTime());
+            it.setFromId(l.getFromId());
+            it.setOpenId(l.getOpenId());
+            it.setPlate(l.getPlate());
+        it.setExpireTime(l.getExpireTime());
+        ls.add(it);
+
+    }
+
+        if (null != ls && ls.size()>0){
+
+            formIdService.insertBatch(ls);
+        }
+
+
+
+
+        return R.ok("成功复制了"+ls.size()+"条formId数据!");
+    }*/
+
+
+}

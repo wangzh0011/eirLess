@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>小程序功能开关</title>
+    <#include "/header.html">
+
+</head>
+<style>
+    #app {
+        font-family: 'Microsoft YaHei','Avenir', Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-align: left;
+        color: #2c3e50;
+        height:100%;
+    }
+
+    .left {
+        margin: 50px 200px;
+    }
+    .main{
+        float:left;
+        width:95%;
+        background-color: #EFF2F7;
+        height:100%;
+        overflow: auto;
+
+    }
+
+    .switch {
+        display: inline-block;
+        position: relative;
+        overflow: hidden;
+        vertical-align: middle;
+        user-select: none;
+        font-size: 10px;
+        cursor: pointer;
+    }
+
+    .switch-input {
+        display: none;
+    }
+
+    .switch-label {
+        position: absolute;
+        top: 0;
+        font-weight: 600;
+        color: white;
+
+        z-index: 2;
+    }
+
+    .label-left {
+         left: 10px;
+         line-height: 20px;
+         border-top-left-radius: 2px;
+         border-bottom-left-radius:2px;
+     }
+
+    .label-right {
+         right: 10px;
+         line-height: 20px;
+         border-top-right-radius: 2px;
+         border-bottom-right-radius:2px;
+     }
+
+    .switch-core {
+        display: block;
+        position: relative;
+        box-sizing: border-box;
+        outline: 0;
+        margin: 0;
+        transition: border-color .3s, background-color .3s;
+        user-select: none;
+        width: 64px;
+        height: 20px;
+        border-radius: 4px;
+        line-height: 20px;
+    }
+
+    .switch-button {
+        width: 32px;
+        height: 20px;
+        display: block;
+        position: absolute;
+        overflow: hidden;
+        top: 0;
+        left: 0;
+        z-index: 3;
+        transform: translate3d(0, 0, 0);
+        background-color: #ecf0f5;
+    }
+
+</style>
+<body>
+<div id="rrapp" v-cloak>
+
+    <div v-show="showList">
+        <div class="grid-btn">
+            <a class="btn btn-primary" @click="add"><i class="fa fa-plus"></i>&nbsp;新增</a>
+            <a class="btn btn-primary" @click="update"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
+        </div>
+
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+    </div>
+
+
+    <div v-show="!showList" class="panel panel-default">
+        <div class="panel-heading">{{title}}</div>
+        <form class="form-horizontal">
+            <div class="form-group">
+                <div class="col-sm-2 control-label">功能</div>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" v-model="wxFunction.functionName" placeholder="功能名"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 control-label">功能代码</div>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" v-model="wxFunction.functionCode" placeholder="与小程序的定义保持一致"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 control-label">功能描述</div>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" style="cursor:pointer;" v-model="wxFunction.functionDesc" placeholder="功能描述"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 control-label">关闭通知</div>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" style="cursor:pointer;" v-model="wxFunction.notice" placeholder="关闭通知"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 control-label">开关</div>
+                <label class="radio-inline">
+                    <input type="radio" name="wxSwitch" value="1" v-model="wxFunction.wxSwitch"/> 开
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="wxSwitch" value="0" v-model="wxFunction.wxSwitch"/> 关
+                </label>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 control-label">是否显示在小程序界面</div>
+                <label class="radio-inline">
+                    <input type="radio" name="isShow" value="1" v-model="wxFunction.isShow"/> 是
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="isShow" value="0" v-model="wxFunction.isShow"/> 否
+                </label>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 control-label"></div>
+                <input type="button" class="btn btn-primary" @click="saveOrUpdate" value="确定"/>
+                &nbsp;&nbsp;<input type="button" class="btn btn-warning" @click="reload" value="返回"/>
+            </div>
+        </form>
+    </div>
+
+
+
+    <!--<label role="checkbox" :class="['switch', { toggled }]">-->
+        <!--<input type="checkbox"-->
+               <!--class="switch-input"-->
+               <!--@change="toggle"/>-->
+        <!--<div class="switch-core"-->
+             <!--:style="{backgroundColor: toggled ? colorChecked  : colorUnchecked}">-->
+            <!--<div class="switch-button"-->
+                 <!--:style="{transition: 'transform {speed}ms',-->
+                <!--transform: toggled ? null: 'translate3d(32px, 0px, 0px)'}">-->
+            <!--</div>-->
+        <!--</div>-->
+        <!--<span class="switch-label label-right"-->
+              <!--v-if="toggled"-->
+              <!--v-html="labelChecked">-->
+        <!--</span>-->
+        <!--<span class="switch-label label-left"-->
+              <!--v-html="labelUnchecked" v-else>-->
+        <!--</span>-->
+    <!--</label>-->
+
+
+</div>
+<script type="text/javascript" src="${request.contextPath}/statics/libs/jquery.cookie.js"></script>
+
+<script src="${request.contextPath}/statics/js/modules/sys/wxSwitch.js?_${.now?long}"></script>
+
+<script>
+
+</script>
+</body>
+</html>

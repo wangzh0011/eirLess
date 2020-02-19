@@ -1,0 +1,573 @@
+package io.renren.modules.miniapp.controller;
+
+import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import io.renren.common.utils.R;
+import io.renren.modules.miniapp.entity.HistoryOrder;
+import io.renren.modules.miniapp.entity.Order;
+import io.renren.modules.miniapp.entity.convert.EntityConvert;
+import io.renren.modules.miniapp.service.HistoryOrderService;
+import io.renren.modules.miniapp.service.OrderService;
+import io.renren.modules.miniapp.until.ResultUtils;
+import io.renren.modules.miniapp.until.TranCountUntil;
+import io.renren.modules.sys.controller.AbstractController;
+import io.renren.modules.sys.entity.SysUserEntity;
+import io.renren.modules.sys.service.SysConfigService;
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.shiro.SecurityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+/**
+ * Created by timmy.deng on 2018/9/11.
+ */
+@RestController
+@RequestMapping("/miniApp")
+public class OrderController extends AbstractController {
+
+    private ResultUtils resultUtils = new ResultUtils();
+    public SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
+    @Autowired
+    private OrderService orderService;
+    @Autowired
+    private HistoryOrderService historyOrderService;
+    @Autowired
+    private SysConfigService sysConfigService;
+
+    @Autowired
+    TranCountUntil countUntil;
+
+
+    @RequestMapping(value = "/addOrder", method = RequestMethod.POST)
+    public Object addOrder(Order order, String index) {
+        System.out.println(order.getOpenId());
+        System.out.println(order.getPlate());
+        System.out.println(JSON.toJSON(order).toString());
+        order.setCreateTime(format.format(new Date()));
+        order.setState("1");
+        orderService.insert(order);
+//        order = orderService.selectOne(new EntityWrapper<>(order));
+        // saveHistoryOrder(order);
+
+
+        // List<Order> list = orderService.selectList(new EntityWrapper<Order>().eq("OPEN_ID",order.getOpenId()).eq("APPOINTMENT_TIME",order.getAppointmentTime()));//in("state",new Object[]{"1","2","3","7"})
+        // List<Order> list = orderService.selectList(new EntityWrapper<Order>().eq("OPEN_ID",order.getOpenId()).eq("APPOINTMENT_TIME",order.getAppointmentTime()).ne("state",new Object[]{"3","4","5"}));//in("state",new Object[]{"1","2","3","7"})
+        List<Order> list = orderService.selectList(new EntityWrapper<Order>().eq("OPEN_ID", order.getOpenId()).eq("APPOINTMENT_TIME", order.getAppointmentTime()).in("state", new Object[]{"1", "2", "7", "6", "9"}));//in("state",new Object[]{"1","2","3","7"})
+
+        for (Order it : list) {
+            it.setTranCount(order.getTranCount());
+        }
+        if (list.size() > 0) {
+            orderService.insertOrUpdateBatch(list);
+        }
+        saveHistoryOrder(order);
+        order.setRemark(index);
+
+
+        return order;
+    }
+
+    @RequestMapping("updateOrder")
+    public Object updateOrder(Order order) {
+
+        order.setUpdateTime(format.format(new Date()));
+
+        orderService.updateById(order);
+
+        Order it = orderService.selectOne(new EntityWrapper<Order>().eq("id", order.getId()));
+
+        List<Order> list = orderService.selectList(new EntityWrapper<Order>().eq("OPEN_ID", it.getOpenId()).in("state", new Object[]{"1", "2", "7"}));
+
+        countUntil.setCount(list);
+        if (list.size() > 0) {
+
+            orderService.insertOrUpdateBatch(list);
+        }
+        saveHistoryOrder(order);
+
+        return R.ok("更新信息成功");
+    }
+
+    @RequestMapping("updateOrderImg")
+    public Object updateOrderImg(@RequestParam Object orderId, @RequestParam String typeImg, @RequestParam String address) {
+/*        System.out.println(orderId);
+        System.out.println("数字类型:"); System.out.print(orderId instanceof Integer);
+        System.out.println("String类型:");System.out.print(orderId instanceof String);*/
+        Order order = new Order();
+        order.setId(Integer.parseInt(orderId.toString()));
+        if ("eirImg".equals(typeImg)) {
+            order.setEirImg(address);
+        } else if ("sealImg".equals(typeImg)) {
+            order.setSealImg(address);
+        } else if ("attachImg".equals(typeImg)) {
+            order.setAttachImg(address);
+        } else if ("sealImg1".equals(typeImg)) {
+            order.setSealImg1(address);
+        } else if ("attachImg1".equals(typeImg)) {
+            order.setAttachImg1(address);
+        } else {
+            return resultUtils.Error("get更新图片地址出错");
+        }
+
+        deleteImg(orderId.toString());
+
+
+        orderService.updateById(order);
+        //String url = sysConfigService.getValue("uploadUrl");
+        order = orderService.selectOne(new EntityWrapper<Order>().eq("id", orderId));
+
+        if (null != order.getSealImg()) {
+            order.setSealImg(order.getSealImg());
+        }
+        if (null != order.getEirImg()) {
+            order.setEirImg(order.getEirImg());
+        }
+        if (null != order.getAttachImg()) {
+            order.setAttachImg(order.getAttachImg());
+        }
+
+        if ("eirImg".equals(typeImg)) {
+            System.out.println();
+            order.setEirImg(address);
+        } else if ("sealImg".equals(typeImg)) {
+            order.setSealImg(address);
+        } else if ("attachImg".equals(typeImg)) {
+            order.setAttachImg(address);
+
+        }
+        order.setUpdateRemark("司机更新了照片");
+        saveHistoryOrder(order);
+        return R.ok("更新成功");
+
+    }
+
+    @PostMapping("updateOrderImg")
+    public Object updateOrderImgPost(@RequestParam Object orderId, @RequestParam String typeImg, @RequestParam String address) {
+/*        System.out.println(orderId);
+        System.out.println("数字类型:"); System.out.print(orderId instanceof Integer);
+        System.out.println("String类型:");System.out.print(orderId instanceof String);*/
+        Order order = new Order();
+        order.setId(Integer.parseInt(orderId.toString()));
+        if ("eirImg".equals(typeImg)) {
+            order.setEirImg(address);
+        } else if ("sealImg".equals(typeImg)) {
+            order.setSealImg(address);
+        } else if ("sealImg1".equals(typeImg)) {
+            order.setSealImg1(address);
+        } else if ("attachImg".equals(typeImg)) {
+            order.setAttachImg(address);
+        } else if ("attachImg1".equals(typeImg)) {
+            order.setAttachImg1(address);
+        } else {
+            return resultUtils.Error("post更新图片地址出错");
+        }
+
+        deleteImg(orderId.toString());
+
+
+        orderService.updateById(order);
+        //String url = sysConfigService.getValue("uploadUrl");
+        order = orderService.selectOne(new EntityWrapper<Order>().eq("id", orderId));
+
+        if (null != order.getSealImg()) {
+            order.setSealImg(order.getSealImg());
+        }
+        if (null != order.getEirImg()) {
+            order.setEirImg(order.getEirImg());
+        }
+        if (null != order.getAttachImg()) {
+            order.setAttachImg(order.getAttachImg());
+        }
+
+        if ("eirImg".equals(typeImg)) {
+            order.setEirImg(address);
+        } else if ("sealImg".equals(typeImg)) {
+            order.setSealImg(address);
+        } else if ("attachImg".equals(typeImg)) {
+            order.setAttachImg(address);
+        }
+        order.setUpdateRemark("司机更新了照片");
+        saveHistoryOrder(order);
+        return R.ok("更新成功");
+
+    }
+
+    @PostMapping("getOrder")
+    public Object getOrder(@RequestParam String openId) {
+        List<Order> ls = orderService.selectList(new EntityWrapper<Order>().
+                eq("OPEN_ID", openId).in("STATE", new Object[]{"1", "2", "3", "7", "6"}).orderBy("id"));//.and("TO_DATE(EXPIRE_TIME,'yyyy-mm-dd hh24:mi') > SYSDATE")
+/*        for (int i = 0; i <ls.size() ; i++) {
+            Order order=ls.get(i);
+            try {
+                Date date=format.parse(order.getExpireTime());
+                if (new Date().getTime()>date.getTime()){
+                    order.setState("11");
+                    ls.remove(i);
+                    orderService.updateById(order);
+                }
+            }catch (Exception e){
+
+            }
+        }*/
+
+        return EntityConvert.convertToOrder(ls);
+
+    }
+
+    /*
+      获得待码头取消的预约
+     */
+    @PostMapping("listcancel")
+    public Object list_cancel(@RequestParam String openId) {
+        List<Order> ls = orderService.selectList(new EntityWrapper<Order>().
+                eq("OPEN_ID", openId).in("STATE", new Object[]{"4", "9"}).orderBy("id"));//.and("TO_DATE(EXPIRE_TIME,'yyyy-mm-dd hh24:mi') > SYSDATE")
+/*        for (int i = 0; i <ls.size() ; i++) {
+            Order order=ls.get(i);
+            try {
+                Date date=format.parse(order.getExpireTime());
+                if (new Date().getTime()>date.getTime()){
+                    order.setState("11");
+                    ls.remove(i);
+                    orderService.updateById(order);
+                }
+            }catch (Exception e){
+
+            }
+        }*/
+
+        return EntityConvert.convertToOrder(ls);
+
+    }
+
+
+    @RequestMapping("/cancel")
+    public R cancel(String id) {
+
+        Order it = orderService.selectOne(new EntityWrapper<Order>().eq("id", id));
+
+        if ("Y".equals(it.getProgressing())) {
+            return R.error("该预约码头正在录单，无法取消");
+
+        }
+
+        if ("4".equals(it.getState())) {
+            return R.ok("不能重复操作");
+        }
+
+        //待审核和审核不通过状态直接取消
+        if ("1".equals(it.getState()) || "3".equals(it.getState())) {
+            it.setState("5");
+
+            it.setUpdateTime(format.format(new Date()));
+
+            if (orderService.insertOrUpdate(it)) {
+
+                saveHistoryOrder(it);
+
+                List<Order> list = orderService.selectList(new EntityWrapper<Order>().eq("OPEN_ID", it.getOpenId()).in("state", new Object[]{"1", "2", "3", "7"}));
+
+                countUntil.setCount(list);
+
+
+                if (list != null && list.size() > 0) {
+
+                    orderService.insertOrUpdateBatch(list);
+
+                }
+
+
+                return R.ok("已取消");
+            }
+
+        }
+
+
+        it.setState("4");
+
+        orderService.insertOrUpdate(it);
+        saveHistoryOrder(it);
+
+        List<Order> list = orderService.selectList(new EntityWrapper<Order>().eq("OPEN_ID", it.getOpenId()).in("state", new Object[]{"1", "2", "3", "7"}));
+
+        countUntil.setCount(list);
+
+        if (list.size() > 0) {
+            orderService.insertOrUpdateBatch(list);
+        }
+
+
+        return R.ok("已提交，请等待码头工作人员取消");
+    }
+
+    /**
+     * 是否可以修改该预约
+     *
+     * @param id
+     * @return
+     */
+    @RequestMapping("/isupdate")
+    public R isUpdate(String id) {
+
+        Order it = orderService.selectOne(new EntityWrapper<Order>().eq("id", id));
+
+        if ("Y".equals(it.getProgressing())) {
+            return R.error("该预约码头正在录单，无法修改");
+        }
+        if ("2".equals(it.getState())) {
+            return R.error("已审核通过，无法修改");
+        }
+
+        List<Order> list = orderService.selectList(new EntityWrapper<Order>().
+                eq("OPEN_ID", it.getOpenId()).in("STATE", new Object[]{"1", "2", "3", "7", "6"}).orderBy("id"));
+        if (list.size() > 4) {
+            return R.error("无法修改,一次预约最多四个业务!");
+        }
+        return R.ok();
+    }
+
+    @PostMapping("check")
+    public R check(@RequestParam String openId, String plate) {
+
+
+        String sysRun = sysConfigService.getValue("sysRun");
+
+
+        if (!"YES".equals(sysRun)) {
+
+            String msg = sysConfigService.getValue("sys_stop_notice");
+
+            return R.error(msg);
+
+        }
+
+
+        List<Order> ls = new ArrayList<>();  /*orderService.selectList(new EntityWrapper<Order>().
+                eq("plate",plate).in("STATE",new Object[]{"1","2"}));*/
+
+/*        for (int i = 0; i <ls.size() ; i++) {
+            Order order=ls.get(i);
+            try {
+                Date date=format.parse(order.getExpireTime());
+                if (new Date().getTime()>date.getTime()){
+                    order.setState("11");
+                    orderService.updateById(order);
+                    ls.remove(i);
+                }
+            }catch (Exception e){
+
+            }
+
+        }*/
+
+        List<Order> ll = orderService.selectList(new EntityWrapper<Order>().eq("plate", plate).in("STATE", new Object[]{"1", "2", "3", "4", "6", "7"}));
+        for (int i = 0; i < ll.size(); i++) {
+            Order it = ll.get(i);
+            System.out.println(it.getOpenId());
+            if (!it.getOpenId().equals(openId)) {
+                System.out.println("客户端的openid:" + openId);
+                System.out.println("数据库中的openid:" + it.getOpenId());
+                System.out.println("该车牌已被" + it.getUserName() + "预约,您暂时无法预约.");
+                return R.error("该车牌已被" + it.getUserName() + "预约,您暂时无法预约.");
+            }
+            if ((it.getState().equals("1") || it.getState().equals("2") || it.getState().equals("3") || it.getState().equals("7")) && it.getOpenId().equals(openId)) {
+                ls.add(it);
+            }
+
+        }
+
+
+        if (ls.size() < 4) {
+            if (ls.size()>0){
+                Map map=new HashMap();
+                map.put("site",ls.get(0).getSite());
+                return R.ok("请确认车牌号码:" + plate,map);
+            }else {
+
+            return R.ok("请确认车牌号码:" + plate);
+
+            }
+        } else {
+            return R.error("不符合新建预约条件");
+        }
+
+
+    }
+
+
+    @PostMapping("getOrderAll")
+    public Object getOrderAll(@RequestParam String openId) {
+
+        List<Order> ls = orderService.selectList(new EntityWrapper<Order>().eq("OPEN_ID", openId).orderBy("id", false));
+
+        if (ls != null && ls.size() > 50) {
+
+            ls = ls.subList(0, 50);
+
+        }
+
+        return EntityConvert.convertToOrderVo(ls);
+
+    }
+
+    @RequestMapping("getOrderById")
+    public Object getOrderById(@RequestParam Integer Id) {
+        return EntityConvert.convertToOrderVo(orderService.selectById(Id));
+    }
+
+    class ClassTest {
+        int[] a= new int[10];
+        String str = new String("hello");
+        char[] ch = {'a', 'b', 'c'};
+
+        public void fun(String str, char ch[]) {
+            str = "world";
+            ch[0] = 'd';
+
+
+        }
+    }
+
+    public static void main(String[] args) {
+
+        String sql = "select a.GATEIN_TIME, a.ID_CARD, a.CHAUFFEUR_NAME driver_name, b.TID_COLOR || b.TID_PY || b.TID_KEY tid_code, " +
+                "c.FULL_NAME company_name, a.AUTO_INDICATOR, a.CERTIFICATE_TYPE, d.QUALIFICATION_NO " +
+                "from dcb_gatein a, vehiclecard b, company c, qualification_info d " +
+                "where a.temp_indicator = 'N' and  a.CODE = b.CODE " +
+                "and b.COM_CODE = c.CODE(+) " +
+                "and a.ID_CARD = d.ID_CARD(+) and a.CERTIFICATE_TYPE is not null " +
+                "union " +
+                "select a.GATEIN_TIME, a.ID_CARD, a.CHAUFFEUR_NAME driver_name, a.tid_code, c.FULL_NAME company_name, a.AUTO_INDICATOR, " +
+                "a.CERTIFICATE_TYPE, d.QUALIFICATION_NO " +
+                "from dcb_gatein a, vehiclecard b, company c, qualification_info d " +
+                "where a.temp_indicator = 'Y' " +
+                "and substr(a.tid_code,1,2) = b.tid_py(+) " +
+                "and substr(a.tid_code,3,5) = b.tid_key(+) " +
+                "and b.COM_CODE = c.CODE(+) " +
+                "and a.ID_CARD = d.ID_CARD(+) and a.CERTIFICATE_TYPE is not null " ;
+
+        System.out.println(sql);
+
+
+        System.out.println(new OrderController().getClass().getName());
+        ClassTest test1 = new OrderController().new ClassTest();
+        new Object(){
+          public boolean equal(){
+              return true;
+          }
+        };
+
+        test1.fun(test1.str, test1.ch);
+        System.out.print(test1.str + " and ");
+        System.out.print(test1.ch);
+
+        int i = 2 / 4;
+        //System.out.println(i);
+
+        i = 0;
+        System.out.println(i++);
+        System.out.println(i);
+        for (int j = 0; j < 100; j++) {
+            i = i++;
+        }
+        System.out.println(i);
+
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
+        System.out.println(format.format(new Date()));
+        System.out.println(
+
+                new EntityWrapper<Order>().eq("OPEN_ID", "o4K350FEfkY7Pz92DZ-ugglvhIV8").and("TO_DATE(EXPIRE_TIME,'yyyy-mm-dd hh24:mi') > SYSDATE")//.setSqlSelect("TO_DATE(EXPIRE_TIME,'yyyy-mm-dd hh24:mi') > SYSDATE")
+                        .getSqlSegment()
+        );
+    }
+
+    public void saveHistoryOrder(Order order) {
+        HistoryOrder hi = new HistoryOrder();
+        try {
+            BeanUtils.copyProperties(hi, order);
+            hi.setUpdateTime(format.format(new Date()));
+            hi.setOrderId(order.getId());
+            String userName = null;
+            try {
+                ((SysUserEntity) SecurityUtils.getSubject().getPrincipal()).getRoleIdList();
+                userName = ((SysUserEntity) SecurityUtils.getSubject().getPrincipal()).getUsername();
+            } catch (Exception e) {
+
+            }
+            if (null == userName) {
+                hi.setOperator("司机");
+            } else {
+                hi.setOperator(userName);
+            }
+
+            boolean s = historyOrderService.insert(hi);
+            System.out.println("保存成功" + s);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+    public void deleteImg(String id) {
+
+        Order l = orderService.selectOne(new EntityWrapper<Order>().eq("ID", id));
+
+
+        if (l.getSealImg() != null) {
+
+            try {
+                File file = new File(l.getSealImg());
+                if (file.exists() && file.isFile()) {
+
+                    file.delete();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println();
+            }
+        }
+        if (l.getEirImg() != null) {
+            try {
+                File file = new File(l.getEirImg());
+                if (file.exists() && file.isFile()) {
+                    file.delete();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println();
+            }
+        }
+        if (l.getAttachImg() != null) {
+            try {
+                File file = new File(l.getAttachImg());
+                if (file.exists() && file.isFile()) {
+                    file.delete();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println();
+            }
+        }
+
+
+    }
+
+    @PostMapping("/checkUser")
+    public R checkUser(@RequestParam String openid) {
+
+        List<Order> list = orderService.selectList(new EntityWrapper<Order>().eq("OPEN_ID", openid).in("state", new Object[]{"1", "2", "3", "7", "6"}));
+        if (list.size() > 0) {
+            return R.error("您存在已预约的作业信息，不能修改资料!");
+        }
+        return R.ok();
+    }
+
+
+}

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>操作通知</title>
+    <#include "/header.html">
+
+</head>
+<body>
+<div id="rrapp" v-cloak>
+
+    <div v-show="showList">
+        <div class="grid-btn">
+            <a class="btn btn-default" @click="reload">刷新数据</a>
+            <a class="btn btn-primary" @click="add"><i class="fa fa-plus"></i>&nbsp;新增</a>
+            <a class="btn btn-primary" @click="update"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
+        </div>
+
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+    </div>
+
+
+    <div v-show="!showList" class="panel panel-default">
+        <div class="panel-heading">{{title}}</div>
+        <form class="form-horizontal">
+
+            <div class="form-group">
+                <div class="col-sm-2 control-label">文章标题</div>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" v-model="notice.title" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-2 control-label">文章内容</div>
+                <div class="col-sm-10">
+                    <textarea type="text" class="form-control" style="height: 300px" v-model="notice.content"></textarea>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-2 control-label">是否显示在小程序界面</div>
+                <label class="radio-inline">
+                    <input type="radio" name="isShow" value="1" v-model="notice.isShow"/> 是
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="isShow" value="0" v-model="notice.isShow"/> 否
+                </label>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 control-label"></div>
+                <input type="button" class="btn btn-primary" @click="saveOrUpdate" value="确定"/>
+                &nbsp;&nbsp;<input type="button" class="btn btn-warning" @click="reload" value="返回"/>
+            </div>
+        </form>
+    </div>
+
+</div>
+<script type="text/javascript" src="${request.contextPath}/statics/libs/jquery.cookie.js"></script>
+
+<script src="${request.contextPath}/statics/js/modules/sys/operNotice.js?_${.now?long}"></script>
+</body>
+</html>

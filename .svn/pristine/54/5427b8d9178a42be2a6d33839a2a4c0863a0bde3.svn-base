@@ -1,0 +1,189 @@
+$(function  () {
+    $("#jqGrid").jqGrid({
+        url: baseURL + 'eir/customer/operNoticeList',
+        datatype: "json",
+        colModel: [
+            { label: 'id', name: 'id', width: 45, key: true },
+            { label: '标题', name: 'title', width: 30 },
+            { label: '内容', name: 'content', width: 70 },
+            { label: '发布时间', name: 'createTime', width: 30 },
+            { label: '作者', name: 'author', width: 10 },
+            { label: '更新时间', name: 'updateTime', width: 30 },
+            { label: '编辑', name: 'editor', width: 10 },
+            { label: '浏览量', name: 'views', width: 10 },
+            { label: '操作', name: 'id', width: 20 ,formatter:function (cellvalue, options,rowObject) {
+                //cellvalue - 当前cell的值
+                // options - 该cell的options设置，包括{rowId, colModel（当前行的属性），grid(当前表格)，pos
+                //rowObject - 当前row数据select5
+                return '<a class="btn " onclick=operate(\'' + cellvalue + '\')><i class=""></i>&nbsp;修改</a>';
+            }},
+        ],
+        viewrecords: true,
+        height: 685,
+        rowNum: 10,
+        rowList : [10,20,60],
+        rownumbers: true,
+        rownumWidth: 25,
+        autowidth:true,
+        multiselect: false,
+        pager: "#jqGridPager",
+        jsonReader : {
+            root: "page.list",
+            page: "page.currPage",
+            total: "page.totalPage",
+            records: "page.totalCount"
+        },
+        prmNames : {
+            page:"page",
+            rows:"limit",
+            order: "order"
+        },
+        gridComplete:function(){
+            //隐藏grid底部滚动条
+            $("#jqGrid").closest(".ui-jqgrid-bdiv").css({ "overflow-x" : "hidden" });
+        }
+    });
+});
+
+
+function operate(id) {
+    $.ajax({
+        url: baseURL + "eir/customer/modifyNotice",
+        data: {
+            id: id,
+        },
+        success(r) {
+            if (r.code === 0) {
+                vm.notice = r.notice;
+                console.log(vm.notice);
+                var index =window.layer.open({
+                    type: 1,
+                    skin: 'layui-layer-molv',
+                    title: "编辑内容",
+                    area: ['25%', '60%'],
+                    closeBtn: 0,
+                    shadeClose: false,
+                    content: jQuery('#notice'),
+                    btn: ['关闭'],
+                    btn1:function (index) {
+
+                        layer.close(index);
+                    }
+                });
+                vm.index=index;
+            } else {
+                alert(r.msg);
+            }
+        }
+    });
+}
+
+var vm = new Vue({
+    el:'#rrapp',
+    data:{
+        notice: {
+            id: ""
+        },
+        q:{
+            key: "",
+            status: "0"
+        },
+        index: -1,
+        title: "",
+        content: "",
+    },
+    mounted : function(){
+        console.log("初始化")
+        //this.update();
+
+    },
+    methods: {
+        //打开新增界面
+        add: function () {
+            var index =window.layer.open({
+                type: 1,
+                skin: 'layui-layer-molv',
+                title: "码头操作通知",
+                area: ['25%', '50%'],
+                closeBtn: 0,
+                shadeClose: false,
+                content: jQuery('#add'),
+                btn: ['关闭'],
+                btn1:function (index) {
+                    layer.close(index);
+                }
+            });
+            vm.index=index;
+        },
+
+        addNotice: function () {
+            $.ajax({
+                url: baseURL + "eir/customer/addNotice",
+                data: {
+                    title: this.title,
+                    content: this.content,
+                },
+                success(res) {
+                    if(res.code == '0'){
+                        layer.close(vm.index);
+                        vm.reload();
+                    }else{
+                        alert(res.msg)
+                    }
+
+                }
+            })
+        },
+
+        reload: function (event) {
+            var page = $("#jqGrid").jqGrid('getGridParam','page');
+            $("#jqGrid").jqGrid('setGridParam',{
+                postData:{'key': this.q.key,},
+                page:page
+            }).trigger("reloadGrid");
+        },
+        update: function () {
+            var title = this.notice.title;
+            var content = this.notice.content;
+            if(title == '' || content == ''){
+                alert("标题或内容不能为空")
+                return ;
+            }
+            $.ajax({
+                url: baseURL + "eir/customer/updateNotice",
+                data: {
+                    id: this.notice.id,
+                    title: this.notice.title,
+                    content: this.notice.content,
+                    views: this.notice.views,
+                },
+                success(res) {
+                    if(res.code == '0'){
+                        layer.close(vm.index);
+                        vm.reload();
+                    }else{
+                        alert(res.msg)
+                    }
+
+                }
+            })
+        },
+
+    },
+    created:function(){
+
+    },
+});
+
+function getRootPath(){
+    //获取当前网址，如： http://localhost:8083/uimcardprj/share/meun.jsp
+    var curWwwPath=window.document.location.href;
+// 获取主机地址之后的目录，如： uimcardprj/share/meun.jsp
+    var pathName=window.document.location.pathname;
+    var pos=curWwwPath.indexOf(pathName);
+    //获取主机地址，如： http://localhost:8083
+    var localhostPaht=curWwwPath.substring(0,pos);
+// 获取带"/"的项目名，如：/uimcardprj
+    var projectName=pathName.substring(0,pathName.substr(1).indexOf('/')+1);
+    return(localhostPaht+projectName);
+}

@@ -1,0 +1,68 @@
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driverClassName: oracle.jdbc.driver.OracleDriver #oracle.jdbc.driver.OracleDriver #com.mysql.cj.jdbc.Driver
+    druid:
+      first:  #数据源1
+        #url: jdbc:mysql://localhost:3306/renren_security?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=GMT
+        #username: root
+        #password: 123456
+        url: jdbc:oracle:thin:@172.25.40.31:1641/deeiru.dachanbayone.com
+        username: DEEIRDATA
+        password: DEEIRDATA123$
+      second:  #数据源2
+        url: jdbc:oracle:thin:@172.25.40.31:1641/dbgu.dachanbayone.com
+        username: bargeadm
+        password: bargeadm123
+      initial-size: 4
+      max-active: 10
+      min-idle: 5
+      max-wait: 60000
+      pool-prepared-statements: false
+      max-pool-prepared-statement-per-connection-size: 20
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      #validation-query: SELECT 1 FROM DUAL
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+      stat-view-servlet:
+        enabled: true
+        url-pattern: /druid/*
+        #login-username: admin
+        #login-password: admin
+      filter:
+        stat:
+          log-slow-sql: true
+          slow-sql-millis: 1000
+          merge-sql: false
+        wall:
+          config:
+            multi-statement-allow: true
+
+    #resources:
+    #static-locations: file:${img.location},classpath:/META-INF/resources/,classpath:/resources/, classpath:/static/, classpath:/public/,
+
+#图片上传路径
+img:
+  location: /app/feidan/image/
+
+
+
+#文件上传大小限制  2M
+#spring.http.multipart.max-file-size=10MB
+
+#配置静态资源
+#spring.resources.static-locations=file:${img.location},classpath:/META-INF/resources/,classpath:/resources/, classpath:/static/, classpath:/public/,
+
+#server配置
+gos:
+  server:
+    cms: http://pccd:8081/webservices/cmsinfo?wsdl
+    eir: http://pccd:8081/webservices/eirinfo?wsdl
+
+localUrl: http://127.0.0.1:8081/
+
+
+
+

@@ -1,0 +1,25 @@
+package io.renren.modules.eir.until;
+
+public class IssueTypeUtil {
+
+    public static String transition(String issueType){
+        String issue = "";
+        switch (issueType) {
+            case "noMechanical":
+                issue = "无机械";
+                break;
+            case "noOrder":
+                issue = "机械未按顺序作业";
+                break;
+            case "busy":
+                issue = "机械繁忙，需要改位";
+                break;
+            case "unitDoor":
+                issue = "调箱门位置";
+                break;
+
+        }
+        return issue;
+    }
+
+}

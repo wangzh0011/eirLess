@@ -1,0 +1,53 @@
+package io.renren.modules.eir.until;
+
+import com.alibaba.fastjson.JSON;
+import io.renren.modules.miniapp.entity.Order;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class SendTemplateMessageUtil {
+
+    public static Map sendWxMsg(Order order, String remark, String template_id, String title, String position){
+        Map<String,Object> map = new HashMap<>();
+        map.put("touser",order.getOpenId());
+        map.put("template_id",template_id);
+        map.put("page","pages/listEir/Eir");
+        Map<String, Object> data = new HashMap<String, Object>();
+        Map<String, String> keyword1 = new HashMap<String, String>();
+        Map<String, String> keyword2 = new HashMap<String, String>();
+        Map<String, String> keyword3 = new HashMap<String, String>();
+        Map<String, String> keyword4 = new HashMap<String, String>();
+        Map<String, String> keyword5 = new HashMap<String, String>();
+
+
+        keyword1.put("value", title);
+
+        keyword1.put("color", "#EEEE00");
+
+        keyword2.put("value", position);
+        keyword2.put("color", "#EEEE00");
+
+        keyword3.put("value", order.getAppointmentTime());
+        keyword3.put("color", "#EEEE00");
+
+        keyword4.put("value", order.getPlate());
+        keyword4.put("color", "#EEEE00");
+
+        keyword5.put("value", remark);
+        keyword5.put("color", "#EEEE00");
+
+        data.put("keyword1", keyword1);
+        data.put("keyword2", keyword2);
+        data.put("keyword3", keyword3);
+        data.put("keyword4", keyword4);
+        data.put("keyword5", keyword5);
+
+        map.put("data",data);
+
+        System.out.println(JSON.toJSON(map).toString());
+
+
+        return map;
+    }
+}

@@ -1,0 +1,120 @@
+html { overflow-x:hidden; }
+ul,li{
+    list-style-type: none;
+}
+.content-header {
+	position: relative;
+	padding: 0 0 3px 8px
+}
+
+.content-header>.breadcrumb {
+    position: relative;
+    top: 0;
+    right: 0;
+    float: none;
+    margin-top: 0px;
+    padding-left: 10px;
+    background: #ecf0f5;
+}
+
+.main-footer {
+    padding: 7px;
+    color: #444;
+    border-top: 1px solid #eee;
+}
+
+[v-cloak] {
+  display: none;
+}
+
+.grid-btn{
+	margin-bottom:12px;
+}
+.grid-btn .btn{
+	margin-right:10px;
+}
+.pointer{cursor: pointer;}
+
+.ml-10 { margin-left:0 !important; }
+@media (min-width: 768px) {
+	.ml-10 { margin-left:10px !important; }
+	.col-sm-10 {width: 70%;padding-left: 0px;}
+	.col-sm-2 {width: 24%;}
+}
+tbody > tr > th {font-weight: normal; }
+.panel .table { margin:0 0; }
+.panel .pagination { margin:0; }
+.panel-default>.panel-heading {background-color: #f5f5f5;}
+.row{
+	border-top: 1px solid #ddd;
+	margin:0;
+	padding:20px 2px 0px 2px;
+}
+.col-xs-6{padding-left: 0px;padding-right: 0px;}
+.form-horizontal .form-group {margin-left:0px;margin-right:0px;}
+.form-horizontal{
+	width:550px;padding-top:20px;
+}
+
+/*飞单页面*/
+.flex {
+    display: flex;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+}
+.item-left {
+    flex: 1;
+}
+.item-right {
+    width: 300px;
+    position: relative;
+    margin-left: 20px;
+}
+.item-right .pics{
+    width: 100%;
+}
+.item-right .pics #viewer2,.item-right .pics #viewer3{
+    height: 100px;
+}
+.item-right .pics #viewer2 li,.item-right .pics #viewer3 li{
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.item-right .pics #viewer2 li img,.item-right .pics #viewer3 li img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    overflow: hidden;
+}
+
+#viewer,#viewer2,#viewer3{
+    padding: 0;
+}
+#eirLess {
+    z-index: 100;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 20px;
+}
+.btnGroup{
+    width: 100%;
+    margin-top: 10px;
+    display: flex;
+    flex-flow: row nowrap;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    align-content: center;
+    justify-content: space-between;
+}
+.btnGroup .btn{
+    flex: 1;
+    padding: 6px;
+    margin:0 2px;
+}

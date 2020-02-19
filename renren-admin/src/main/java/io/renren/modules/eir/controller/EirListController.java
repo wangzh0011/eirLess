@@ -1,0 +1,202 @@
+package io.renren.modules.eir.controller;
+
+import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import io.renren.common.utils.PageUtils;
+import io.renren.common.utils.R;
+import io.renren.modules.eir.until.FileUtil;
+import io.renren.modules.eir.until.SiteUtil;
+import io.renren.modules.eir.until.StateUntil;
+import io.renren.modules.miniapp.entity.Order;
+import io.renren.modules.miniapp.service.OrderService;
+import io.renren.modules.miniapp.until.MessageTemplateUtils;
+import io.renren.modules.miniapp.until.TranCountUntil;
+import io.renren.modules.miniapp.until.tranTypeUtils;
+import io.renren.modules.sys.service.SysConfigService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.context.WebApplicationContext;
+
+import javax.servlet.http.HttpServletResponse;
+import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by timmy.deng on 2018/10/12.
+ */
+@Controller
+@RequestMapping("eir/list")
+public class EirListController {
+
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private SysConfigService sysConfigService;
+
+    @Autowired
+    WebApplicationContext webApplicationConnect;
+
+    @Autowired
+    MessageTemplateUtils messageTemplateUtils;
+
+    @Autowired
+    TranCountUntil countUntil;
+
+    public SimpleDateFormat format =new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
+
+    private StateUntil stateUntil = new StateUntil();
+
+    private tranTypeUtils typeUtils= new tranTypeUtils();
+
+
+    @RequestMapping("/exportExcel")
+    public void exportExcel(@RequestParam Map<String, Object> params,HttpServletResponse response){
+        System.out.println("导出数据传过来的参数:"+JSON.toJSONString(params));
+        String url = sysConfigService.getValue("uploadUrl");
+        PageUtils page = orderService.queryPage(params);
+        List<Order> ls= (List<Order>)page.getList();
+        for (Order it: ls){
+            if(null != it.getSealImg()){
+                it.setSealImg(url+it.getSealImg());
+            }
+            if (null!=it.getEirImg()){
+                it.setEirImg(url+it.getEirImg());}
+            if (null != it.getAttachImg()){
+                it.setAttachImg(url+it.getAttachImg());
+            }
+            it.setState(stateUntil.Change(it.getState()));
+            it.setTranType(typeUtils.change(it.getTranType()));
+        }
+
+
+        FileUtil.exportExcel(ls,"飞单预约数据","飞单",Order.class,"飞单预约数据.xls",response);
+
+     //   Workbook workbook =ExcelExportUtil.exportBigExcel(new ExportParams("dasd","adsa"),Order.class,ls);
+
+
+/*        // 判断数据
+        if(workbook == null) {
+            System.out.println("null");
+        }
+        for (Sheet rows : workbook) {
+            System.out.println(rows.getSheetName());
+        }
+        // 设置excel的文件名称
+        String excelName = "excel" ;
+        // 重置响应对象
+       *//* response.reset();*//*
+        // 当前日期，用于导出文件名称
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        String dateStr = "["+excelName+"-"+sdf.format(new Date())+"]";
+
+
+        System.out.println("共"+ls.size()+"条数据");*/
+
+
+
+
+
+        // 指定下载的文件名--设置响应头
+       /* response.setHeader("Content-Disposition", "attachment;filename=" +dateStr+".xls");
+        response.setHeader("Content-Type","application/vnd.ms-excel;charset=UTF-8");*/
+     /*   response.setHeader("Pragma", "no-cache");
+        response.setHeader("Cache-Control", "no-cache");
+        response.setDateHeader("Expires", 0);*/
+        // 写出数据输出流到页面
+ /*       try {
+            OutputStream output = response.getOutputStream();
+            BufferedOutputStream bufferedOutPut = new BufferedOutputStream(output);
+            workbook.write(bufferedOutPut);
+            bufferedOutPut.flush();
+            bufferedOutPut.close();
+            output.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }*/
+
+/*        try {
+            workbook.write(response.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }*/
+
+
+
+    }
+
+
+
+    /**
+     * eirList列表
+     *
+     */
+    @ResponseBody
+    @RequestMapping("/page")
+    public R list(@RequestParam Map<String, Object> params){
+        System.out.println("查询传过来的参数:"+JSON.toJSONString(params));
+
+        String url = sysConfigService.getValue("uploadUrl");
+        PageUtils page = orderService.queryPage(params);
+        List<Order> ls= (List<Order>)page.getList();
+
+
+
+        for (Order it: ls){
+            System.out.println();
+            if(null != it.getSealImg()){
+                it.setSealImg(url+it.getSealImg());
+            }
+            if (null!=it.getEirImg()){
+                it.setEirImg(url+it.getEirImg());}
+            if (null != it.getAttachImg()){
+                it.setAttachImg(url+it.getAttachImg());
+            }
+            it.setState(stateUntil.Change(it.getState()));
+            it.setTranType(typeUtils.change(it.getTranType()));
+            //增加作业地点显示
+            it.setSite(SiteUtil.transition(it.getSite()));
+        }
+
+
+
+
+
+
+
+
+       // ExcelExportUtil.exportBigExcel
+        //ExcelExportUtil.exportBigExcel(new ExportParams(),Order.class);
+
+
+        return R.ok().put("page", page);
+    }
+    @ResponseBody
+    @RequestMapping("/id")
+    public R getById(String id){
+        String url = sysConfigService.getValue("uploadUrl");
+        Order order = orderService.selectOne(new EntityWrapper<Order>().eq("id",id));
+        order.setState(stateUntil.Change(order.getState()));
+        order.setTranType(typeUtils.change(order.getTranType()));
+        if (null != order.getSealImg()){
+            order.setSealImg(url+order.getSealImg());
+        }
+        if (null != order.getSealImg1()){
+            order.setSealImg1(url+order.getSealImg1());
+        }
+        if (null!=order.getEirImg()){
+            order.setEirImg(url+order.getEirImg());
+        }
+        if (null != order.getAttachImg()){
+            order.setAttachImg(url+order.getAttachImg());
+        }
+        if (null != order.getAttachImg1()){
+            order.setAttachImg1(url+order.getAttachImg1());
+        }
+        return R.ok().put("order",order);
+    }
+}

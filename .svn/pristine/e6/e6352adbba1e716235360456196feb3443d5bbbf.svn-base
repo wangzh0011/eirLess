@@ -1,0 +1,40 @@
+package io.renren.modules.miniapp.controller;
+
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import io.renren.datasources.DataSourceNames;
+import io.renren.datasources.annotation.DataSource;
+import io.renren.modules.miniapp.entity.LtrSchedule;
+import io.renren.modules.miniapp.service.LtrScheduleService;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.Resource;
+import java.util.List;
+
+@RestController
+@RequestMapping("/miniApp")
+public class LtrScheduleController {
+
+    @Resource
+    private LtrScheduleService ltrScheduleService;
+
+    @RequestMapping("/getEta")
+    @DataSource(name = DataSourceNames.SECOND)
+    public String getEta(String phone){
+        List<LtrSchedule> list = ltrScheduleService.selectList(new EntityWrapper<LtrSchedule>().eq("on_bond_tel",phone));
+        String eta = list.get(0).getEta();
+        return eta;
+    }
+
+    @RequestMapping("/saveEtaAndAta")
+    @DataSource(name = DataSourceNames.SECOND)
+    public String saveEtaAndAta(String eta,String ata,String phone){
+        LtrSchedule schedule = new LtrSchedule();
+        eta = eta.replace("-","").replace(":","").replace(" ","")+"00";
+        schedule.setEta(eta);
+        //update eta --bargelink
+        ltrScheduleService.update(schedule,new EntityWrapper<LtrSchedule>().eq("on_bond_tel",phone));
+        //update ata --sitemap
+        return "";
+    }
+}

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>管理员列表</title>
+<#include "/header.html">
+</head>
+<body>
+<div id="rrapp" v-cloak>
+	<div v-show="showList">
+		<div class="grid-btn">
+			<div class="form-group col-sm-2">
+				<input type="text" class="form-control" v-model="q.username" @keyup.enter="query" placeholder="用户名、手机号码、车牌号码、注册时间">
+			</div>
+			<a class="btn btn-default" @click="query">查询</a>
+
+			<#if shiro.hasPermission("sys:app:send")>
+			<a class="btn btn-primary"  @click="sendMsg"><i class="fa fa-comments-o"></i>&nbsp;发送模板消息</a>
+		    </#if>
+			<!--
+			<#if shiro.hasPermission("sys:user:save")>
+			<a class="btn btn-primary" @click="add"><i class="fa fa-plus"></i>&nbsp;新增</a>
+			</#if>
+			<#if shiro.hasPermission("sys:user:update")>
+			<a class="btn btn-primary" @click="update"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
+			</#if>
+			<#if shiro.hasPermission("sys:user:delete")>
+			<a class="btn btn-primary" @click="del"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+			</#if>
+			-->
+		</div>
+	    <table id="jqGrid"></table>
+	    <div id="jqGridPager"></div>
+    </div>
+
+	<div v-show="!showList" class="panel panel-default">
+
+
+		<div style="padding: 10px 0 20px 10px;">
+			<h4>&nbsp;&nbsp;&nbsp;发送模板消息</h4>
+			<!--<ul>-->
+				<!--&lt;!&ndash;<li>举例:{"template_id":"tns62_LdCocKV3jsfjFZrEdpgRsyf3x_cle9iR9IXs4","touser":"o4K350FEfkY7Pz92DZ-ugglvhIV8","page":"pages/listEir/Eir","data":{"keyword5":{"color":"#EEEE00","value":"样例"},"keyword3":{"color":"#EEEE00","value":"2018-11-26 08:00-16:00"},"keyword4":{"color":"#EEEE00","value":"GDB88888Y"},"keyword1":{"color":"#EEEE00","value":"样例"},"keyword2":{"color":"#EEEE00","value":"样例"}}}</li>&ndash;&gt;-->
+			<!--</ul>-->
+		</div>
+
+
+        <div class="form-group">
+            template_id(必填):<input type="text" class="form-control" style="height:30px;width: 35%"  v-model="message.template_id">
+            touser(必填):<input type="text" class="form-control" style="height:30px;width: 35%" placeholder="填写用户openid则向对应用户发送消息,填写%allUser%则向所有用户发送消息。"  v-model="message.touser">
+            page:<input type="text" class="form-control" style="height:30px;width: 35%" placeholder="pages/listEir/Eir" readonly="readonly" v-model="message.page">
+            keyword1(选填):<input type="text" class="form-control" style="height:30px;width: 35%"  v-model="message.keyword1">
+            keyword2(选填):<input type="text" class="form-control" style="height:30px;width: 35%"  v-model="message.keyword2">
+            keyword3(选填):<input type="text" class="form-control" style="height:30px;width: 35%"  v-model="message.keyword3">
+            keyword4(选填):<input type="text" class="form-control" style="height:30px;width: 35%"  v-model="message.keyword4">
+            keyword5(选填):<input type="text" class="form-control" style="height:30px;width: 35%"  v-model="message.keyword5">
+        </div>
+
+
+
+        <div class="form-group">
+            <div class="col-sm-2 control-label"></div>
+
+            <#if shiro.hasPermission("sys:app:all")>
+            <input type="button" class="btn btn-primary" @click="sendAll"  value="发送"/>
+            </#if>
+
+            <!--<#if shiro.hasPermission("sys:app:single")>-->
+            <!--<input type="button" class="btn btn-primary"  @click="sendSingle" value="单个用户"/>-->
+            <!--</#if>-->
+
+            &nbsp;&nbsp;<input type="button" class="btn btn-warning" @click="reload" value="返回"/>
+        </div>
+
+	</div>
+</div>
+
+
+<script src="${request.contextPath}/statics/js/modules/sys/wxuser.js?_${.now?long}"></script>
+</body>
+</html>

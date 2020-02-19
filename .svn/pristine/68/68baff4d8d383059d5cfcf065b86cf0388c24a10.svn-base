@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>驳船报到列表</title>
+    <#include "/header.html">
+
+</head>
+<body>
+<div id="rrapp" v-cloak>
+    <div>
+        <div class="grid-btn">
+            <a class="btn btn-default" @click="reload">刷新数据</a>
+            <!--<input type="radio" name="site" @click="site_D">内贸-->
+            <!--<input type="radio" name="site" @click="site_I">外贸-->
+            <!--<input type="radio" name="site" @click="site" checked="checked">全部-->
+        </div>
+        <div id="ltrSchedule" style="display: none;" class="flex">
+            <div class="item-right">
+
+                <form>
+                    <table class="table table-bordered table-hove">
+                        <tr>
+                            <td style="width: 100px">船名：</td>
+                            <td>{{ltrSchedule.bargeNameCn}}</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 100px">航次：</td>
+                            <td><span class="label label-success">{{ltrSchedule.iVoyCd}}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="width: 100px">ATA：</td>
+                            <td>{{ltrSchedule.iAta}}</td>
+                        </tr>
+                    </table>
+                </form>
+
+                <div class="form-group">
+                    <label for="formGroupExampleInput2">泊位</label>
+                    <input type="text" class="form-control" id="formGroupExampleInput2"
+                              style="height: 50px" placeholder="请输入泊位" v-model="berth">{{ltrSchedule.berth}}</input>
+                </div>
+
+                <div class="btnGroup">
+                    <a class="btn btn-primary" @click="sendMsg" >推送</a>
+                </div>
+            </div>
+        </div>
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+    </div>
+</div>
+<script type="text/javascript" src="${request.contextPath}/statics/libs/jquery.cookie.js"></script>
+
+<script src="${request.contextPath}/statics/js/modules/sys/ataList.js?_${.now?long}"></script>
+</body>
+</html>

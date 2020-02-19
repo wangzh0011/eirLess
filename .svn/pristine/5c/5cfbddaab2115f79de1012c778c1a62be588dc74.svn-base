@@ -1,0 +1,31 @@
+package io.renren.modules.miniapp.entity;
+
+import com.baomidou.mybatisplus.annotations.TableName;
+
+import java.io.Serializable;
+
+/**
+ * 用于获取船舶的ETA
+ */
+@TableName("LTR_SCHEDULE")
+public class LtrSchedule implements Serializable {
+    public String getEta() {
+        return eta;
+    }
+
+    public void setEta(String eta) {
+        this.eta = eta;
+    }
+
+    private String eta;
+
+    private String iAta;
+
+    public String getIAta() {
+        return iAta;
+    }
+
+    public void setIAta(String iAta) {
+        this.iAta = iAta;
+    }
+}

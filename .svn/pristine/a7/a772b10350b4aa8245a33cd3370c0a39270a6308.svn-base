@@ -1,0 +1,135 @@
+package io.renren.modules.miniapp.controller;
+
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import io.renren.datasources.DataSourceNames;
+import io.renren.datasources.annotation.DataSource;
+import io.renren.modules.miniapp.entity.ChangeLog;
+import io.renren.modules.miniapp.entity.LtrSchedule;
+import io.renren.modules.miniapp.service.ChangeLogService;
+import io.renren.modules.miniapp.service.LtrScheduleService;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+@RestController
+@RequestMapping("/miniApp")
+public class LtrScheduleController {
+
+    @Resource
+    private LtrScheduleService ltrScheduleService;
+
+    @Resource
+    private ChangeLogService changeLogService;
+
+    /**
+     * 获取船期
+     * @param phone 船方绑定手机号
+     * @param userName 船名
+     * @return
+     */
+    @RequestMapping("/getEta")
+    @DataSource(name = DataSourceNames.SECOND)
+    public List<LtrSchedule> getEta(String phone,String userName){
+        List<LtrSchedule> list = ltrScheduleService.selectList(new EntityWrapper<LtrSchedule>().like("on_bond_tel",phone)
+                .or().eq("barge_name_cn",userName)
+                .andNew()
+                .isNotNull("i_dcb_voy_cd").isNull("i_atd")
+                .or().isNotNull("o_dcb_voy_cd").isNull("o_atd")
+                /*.ge("eta",new SimpleDateFormat("yyyyMMddHHmmss").format(new Date().getTime()-1000*60*60*24*5))*/
+        );
+        if(list.size() == 0){
+            return null;
+        }
+        return list;
+    }
+
+    /**
+     * 船方修改ETA
+     * @param eta
+     * @param voyCd
+     * @param iVoyCd
+     * @param oVoyCd
+     * @return
+     */
+    @RequestMapping("/saveEta")
+    @DataSource(name = DataSourceNames.SECOND)
+    public boolean saveEta(String eta,String voyCd,String iVoyCd,String oVoyCd){
+
+        //修改之前的信息
+        LtrSchedule oldSchedule = ltrScheduleService.selectOne(new EntityWrapper<LtrSchedule>().eq("voy_cd",voyCd));
+
+        /*船期信息*/
+        LtrSchedule schedule = new LtrSchedule();
+        eta = eta.replace("-","").replace(":","").replace(" ","")+"00";
+        schedule.setEta(eta);
+        schedule.setUpdateTime(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+        schedule.setUpdateUsr("");
+
+        /*记录修改的日志信息*/
+        ChangeLog log = new ChangeLog();
+        log.setLogDtl("ETA " + oldSchedule.getEta() + " -> " + eta);
+        log.setLogStatus("N");
+        log.setLogType("0");
+        log.setUpdTime(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()));
+        log.setVoyCd(voyCd);
+
+        //update eta --bargelink
+        boolean flag = ltrScheduleService.update(schedule,new EntityWrapper<LtrSchedule>()
+                .eq("i_voy_cd",iVoyCd).eq("o_voy_cd",oVoyCd));
+
+        //insert changelog
+        changeLogService.insertValue(log.getLogType(),log.getLogDtl(),log.getLogStatus(),log.getUpdTime(),log.getVoyCd());
+
+        return flag;
+    }
+
+    /**
+     * 报到
+     * @param ata
+     * @param iVoyCd
+     * @param oVoyCd
+     * @param isTakeStep
+     * @param comeHere
+     * @return
+     */
+    @RequestMapping("/saveAta")
+    @DataSource(name = DataSourceNames.SECOND)
+    public boolean saveAta(String ata,String iVoyCd,String oVoyCd,String isTakeStep,String comeHere){
+
+        LtrSchedule schedule = new LtrSchedule();
+        ata = ata.replace("-","").replace(":","").replace(" ","")+"00";
+        schedule.setAtaTemp(ata);
+        schedule.setInspInd(isTakeStep);
+        schedule.setComeHere(comeHere);
+        boolean flag = ltrScheduleService.update(schedule,new EntityWrapper<LtrSchedule>()
+                .eq("i_voy_cd",iVoyCd)
+                .eq("o_voy_cd",oVoyCd));
+        return flag;
+    }
+
+    /**
+     * 取消报到
+     * @param ata
+     * @param iVoyCd
+     * @param oVoyCd
+     * @param comeHere
+     * @return
+     */
+    @RequestMapping("/reSetAta")
+    @DataSource(name = DataSourceNames.SECOND)
+    public boolean reSetAta(String ata,String iVoyCd,String oVoyCd,String comeHere){
+        LtrSchedule schedule = new LtrSchedule();
+        schedule.setAtaTemp(ata);
+        schedule.setQc("");
+        schedule.setComeHere(comeHere);
+        boolean flag = ltrScheduleService.update(schedule,new EntityWrapper<LtrSchedule>()
+                .eq("i_voy_cd",iVoyCd)
+                .eq("o_voy_cd",oVoyCd));
+        return flag;
+    }
+
+}

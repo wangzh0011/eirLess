@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>操作通知</title>
+    <#include "/header.html">
+
+</head>
+<body>
+<div id="rrapp" v-cloak>
+    <div>
+        <div class="grid-btn">
+            <a class="btn btn-default" @click="reload">刷新数据</a>
+            <a class="btn btn-primary" @click="add"><i class="fa fa-plus"></i>&nbsp;新增</a>
+        </div>
+
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+
+
+        <div id="add" style="display: none;" class="flex">
+            <div class="item-right">
+                <form>
+                    <table class="table table-bordered table-hove">
+                        <p style="display: inline-block">
+                            <span></span>
+                            <span class="text-muted"></span>
+                        </p>
+                        <tr>
+                            <td style="width: 100px">文章标题：</td>
+                            <td><input type="text"  v-model="title"/></td>
+                        </tr>
+                    </table>
+                </form>
+
+                <div class="form-group">
+                    <label for="formGroupExampleInput1">文章内容</label>
+                    <textarea type="text" class="form-control" id="formGroupExampleInput1"
+                              style="height: 100px" placeholder="" v-model="content"></textarea>
+                </div>
+                <div class="btnGroup">
+                    <a class="btn btn-primary" @click="addNotice" >提交</a>
+                </div>
+            </div>
+        </div>
+
+        <div id="notice" style="display: none;" class="flex">
+            <div class="item-right">
+                <p style="display: inline-block">
+                    <span>id:</span>
+                    <span class="text-muted"> {{notice.id}}</span>
+                </p>
+                <p style="display: inline-block">
+                    <span>作者:</span>
+                    <span class="text-muted"> {{notice.author}}</span>
+                </p>
+                <p style="display: inline-block">
+                    <span>发布时间: </span>
+                    <span class="text-muted"> {{notice.createTime}}</span>
+                </p>
+
+                <form>
+                    <table class="table table-bordered table-hove">
+                        <tr>
+                            <td style="width: 100px">文章标题：</td>
+                            <td><input type="text"  v-model="notice.title"/></td>
+                        </tr>
+                        <tr>
+                            <td style="width: 100px">浏览量：</td>
+                            <td><span class="label label-success">{{notice.views}}</span></td>
+                        </tr>
+                    </table>
+                </form>
+
+                <div class="form-group">
+                    <label for="formGroupExampleInput2">文章内容</label>
+                    <textarea type="text" class="form-control" id="formGroupExampleInput2"
+                              style="height: 100px" placeholder="" v-model="notice.content">{{notice.content}}</textarea>
+                </div>
+
+                <div class="btnGroup">
+                    <a class="btn btn-primary" @click="update" >提交</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script type="text/javascript" src="${request.contextPath}/statics/libs/jquery.cookie.js"></script>
+
+<script src="${request.contextPath}/statics/js/modules/sys/operNotice.js?_${.now?long}"></script>
+</body>
+</html>

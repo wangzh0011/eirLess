@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>堆场机械问题挂起</title>
+    <#include "/header.html">
+
+</head>
+<body>
+<div id="rrapp" v-cloak>
+    <div>
+        <div class="grid-btn">
+            <a class="btn btn-default" @click="reload">刷新数据</a>
+            <input type="radio" name="site" @click="site_D">内贸
+            <input type="radio" name="site" @click="site_I">外贸
+            <input type="radio" name="site" @click="site" checked="checked">全部
+        </div>
+
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+
+        <div id="yard" style="display: none;" class="flex">
+            <div class="item-right">
+                <p style="display: inline-block">
+                    <span>id:</span>
+                    <span class="text-muted"> {{yard.id}}</span>
+                </p>
+                <p style="display: inline-block">
+                    <span>司机:</span>
+                    <span class="text-muted"> {{yard.userName}}</span>
+                </p>
+                <p style="display: inline-block">
+                    <span>车牌: </span>
+                    <span class="text-muted"> {{yard.plate}}</span>
+                </p>
+
+
+                <a class="btn btn-default"
+                   style="width: 90% ;margin-top: 20px;margin-bottom:10px " @click="open">
+                    &nbsp;操作记录<i class="fa fa-angle-double-right"></i>
+                </a>
+                <form>
+                    <table class="table table-bordered table-hove">
+                        <tr>
+                            <td style="width: 100px">堆场机械问题：</td>
+                            <td>{{yard.issueType}}</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 100px">处理状态：</td>
+                            <td><span class="label label-success">{{yard.status}}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="width: 100px">反馈时间：</td>
+                            <td>{{yard.createTime}}</td>
+                        </tr>
+                    </table>
+                </form>
+
+                <div class="form-group">
+                    <label for="formGroupExampleInput2">备注信息</label>
+                    <textarea type="text" class="form-control" id="formGroupExampleInput2"
+                              style="height: 50px" placeholder="备注信息"readonly="readonly" >{{yard.remark}}</textarea>
+                </div>
+
+                <!--<div class="btnGroup">-->
+                    <!--<a class="btn btn-primary" @click="reply" >回复司机</a>-->
+                    <!--<a class="btn btn-primary" @click="handUp" >挂起</a>-->
+                <!--</div>-->
+
+
+            </div>
+            <!--<div class="item-right">-->
+                <!---->
+
+            <!--</div>-->
+        </div>
+        <table id="yardPlan"></table>
+
+    </div>
+</div>
+<script type="text/javascript" src="${request.contextPath}/statics/libs/jquery.cookie.js"></script>
+
+<script src="${request.contextPath}/statics/js/modules/sys/yardPlanHangUp.js?_${.now?long}"></script>
+</body>
+</html>

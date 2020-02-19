@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>管理员列表</title>
+<#include "/header.html">
+</head>
+<body>
+<div id="rrapp" v-cloak>
+	<div v-show="showList">
+		<div class="grid-btn">
+			<div class="form-group col-sm-2">
+				<input type="text" class="form-control" v-model="q.username" @keyup.enter="query" placeholder="用户名、手机号码、车牌号码、注册时间">
+			</div>
+			<a class="btn btn-default" @click="query">查询</a>
+
+			<#if shiro.hasPermission("sys:app:send")>
+			<a class="btn btn-primary"  @click="sendMsg"><i class="fa fa-comments-o"></i>&nbsp;发送模板消息</a>
+		    </#if>
+			<!--
+			<#if shiro.hasPermission("sys:user:save")>
+			<a class="btn btn-primary" @click="add"><i class="fa fa-plus"></i>&nbsp;新增</a>
+			</#if>
+			<#if shiro.hasPermission("sys:user:update")>
+			<a class="btn btn-primary" @click="update"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
+			</#if>
+			<#if shiro.hasPermission("sys:user:delete")>
+			<a class="btn btn-primary" @click="del"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+			</#if>
+			-->
+		</div>
+	    <table id="jqGrid"></table>
+	    <div id="jqGridPager"></div>
+    </div>
+
+	<div v-show="!showList" class="panel panel-default">
+
+
+		<div style="padding: 10px 0 20px 10px;">
+			<h5>&nbsp;&nbsp;&nbsp;说明</h5>
+			<ul>
+				<li>touser为openid发送单个用户,touser为%allUser%则向全部用户发送，请谨慎使用向全部用户发送!</li>
+				<li>举例:{"template_id":"tns62_LdCocKV3jsfjFZrEdpgRsyf3x_cle9iR9IXs4","touser":"o4K350FEfkY7Pz92DZ-ugglvhIV8","page":"pages/listEir/Eir","data":{"keyword5":{"color":"#EEEE00","value":"样例"},"keyword3":{"color":"#EEEE00","value":"2018-11-26 08:00-16:00"},"keyword4":{"color":"#EEEE00","value":"GDB88888Y"},"keyword1":{"color":"#EEEE00","value":"样例"},"keyword2":{"color":"#EEEE00","value":"样例"}}}</li>
+			</ul>
+		</div>
+
+
+			<div class="form-group">
+				<label for="formGroupExampleInput2">jsonString</label>
+				<textarea type="text" class="form-control" id="formGroupExampleInput2"
+						  style="height:300px;width: 60%" placeholder="备注信息"
+						  v-model="msg">{{msg}}</textarea>
+			</div>
+
+
+
+			<div class="form-group">
+				<div class="col-sm-2 control-label"></div>
+
+				<#if shiro.hasPermission("sys:app:all")>
+				<input type="button" class="btn btn-primary" @click="sendAll"  value="全部用户"/>
+			    </#if>
+
+		        <#if shiro.hasPermission("sys:app:single")>
+				<input type="button" class="btn btn-primary"  @click="sendSingle" value="单个用户"/>
+	            </#if>
+
+				&nbsp;&nbsp;<input type="button" class="btn btn-warning" @click="reload" value="返回"/>
+			</div>
+
+	</div>
+</div>
+
+<!-- 选择部门 -->
+<div id="deptLayer" style="display: none;padding:10px;">
+	<ul id="deptTree" class="ztree"></ul>
+</div>
+
+<script src="${request.contextPath}/statics/js/modules/sys/wxuser.js?_${.now?long}"></script>
+</body>
+</html>

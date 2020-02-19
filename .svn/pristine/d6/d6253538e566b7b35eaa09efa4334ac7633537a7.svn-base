@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">    
+<mapper namespace="io.renren.modules.miniapp.dao.CosIdoProcessDao">
+
+	<select id="selectCosIdo" resultType="io.renren.modules.miniapp.entity.cosido.CosIdoProcess">
+		select
+			eirno,
+			checkresult,
+			remark,
+			docref,
+			cntrno,
+			sizetype,
+			create_time,
+			case when checkresult = 'SUCCESS' AND ediactiontype = 'CRE' THEN '箱在场，EDI接收'
+				 when checkresult = 'SUCCESS' AND ediactiontype = 'CAN' THEN '箱在场，EDI取消'
+				 when remark like '11%' THEN '箱未卸船,EDI等待'
+				 else '箱已离场'
+			end  status
+		from
+			COS_IDO_PROCESS
+		where
+			rownum=1 and  docref = #{docref}
+		order by gkey desc
+
+	</select>
+
+</mapper>

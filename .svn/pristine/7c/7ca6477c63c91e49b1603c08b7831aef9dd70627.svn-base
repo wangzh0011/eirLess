@@ -1,0 +1,11 @@
+package io.renren.modules.miniapp.dao;
+
+import com.baomidou.mybatisplus.mapper.BaseMapper;
+import io.renren.modules.miniapp.entity.bargelink.ChangeLog;
+import org.apache.ibatis.annotations.Param;
+
+public interface ChangeLogDao extends BaseMapper<ChangeLog> {
+    public void insertValue(@Param("logType") String logType,@Param("logDtl") String logDtl,
+                            @Param("logStatus") String logStatus,@Param("updTime") String updTime,
+                            @Param("voyCd") String voyCd);
+}

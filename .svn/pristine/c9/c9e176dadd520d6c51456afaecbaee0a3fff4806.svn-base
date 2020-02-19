@@ -1,0 +1,21 @@
+package io.renren.modules.miniapp.entity;
+
+import com.baomidou.mybatisplus.annotations.TableName;
+
+import java.io.Serializable;
+
+/**
+ * 船方在bargelink的注册信息
+ */
+@TableName("LTR_REG_DTL")
+public class LtrRegDtl implements Serializable {
+    public String getOb_mob() {
+        return ob_mob;
+    }
+
+    public void setOb_mob(String ob_mob) {
+        this.ob_mob = ob_mob;
+    }
+
+    private String ob_mob;
+}

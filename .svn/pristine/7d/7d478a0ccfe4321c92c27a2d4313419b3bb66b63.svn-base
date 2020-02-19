@@ -1,0 +1,200 @@
+package io.renren.modules.miniapp.entity;
+
+import com.baomidou.mybatisplus.annotations.TableName;
+
+import java.io.Serializable;
+
+/**
+ * Created by timmy.deng on 2018/9/11.
+ */
+@TableName("tb_history_order")
+public class HistoryOrder implements Serializable {
+    private Integer orderId;
+    private String openId;
+    private String phone;
+    private String userName;
+    private String plate;
+    private String state;
+    private String tranType;
+    private String eirImg;
+    private String sealImg;
+    private String sealImg1;
+    private String attachImg;
+    private String attachImg1;
+    private String otherImg;
+    private String reason;
+    private String remark;
+    private String appointmentTime;
+    private String operator;
+    private String createTime;
+    private String updateTime;
+    private String progressing;
+    private String expireTime;
+
+    public Integer getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(Integer orderId) {
+        this.orderId = orderId;
+    }
+
+    public String getOpenId() {
+        return openId;
+    }
+
+    public void setOpenId(String openId) {
+        this.openId = openId;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getPlate() {
+        return plate;
+    }
+
+    public void setPlate(String plate) {
+        this.plate = plate;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public String getTranType() {
+        return tranType;
+    }
+
+    public void setTranType(String tranType) {
+        this.tranType = tranType;
+    }
+
+    public String getEirImg() {
+        return eirImg;
+    }
+
+    public void setEirImg(String eirImg) {
+        this.eirImg = eirImg;
+    }
+
+    public String getSealImg() {
+        return sealImg;
+    }
+
+    public void setSealImg(String sealImg) {
+        this.sealImg = sealImg;
+    }
+
+    public String getAttachImg() {
+        return attachImg;
+    }
+
+    public void setAttachImg(String attachImg) {
+        this.attachImg = attachImg;
+    }
+
+    public String getOtherImg() {
+        return otherImg;
+    }
+
+    public void setOtherImg(String otherImg) {
+        this.otherImg = otherImg;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
+    public String getAppointmentTime() {
+        return appointmentTime;
+    }
+
+    public void setAppointmentTime(String appointmentTime) {
+        this.appointmentTime = appointmentTime;
+    }
+
+    public String getOperator() {
+        return operator;
+    }
+
+    public void setOperator(String operator) {
+        this.operator = operator;
+    }
+
+    public String getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
+    }
+
+    public String getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(String updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public String getProgressing() {
+        return progressing;
+    }
+
+    public void setProgressing(String progressing) {
+        this.progressing = progressing;
+    }
+
+    public String getExpireTime() {
+        return expireTime;
+    }
+
+    public void setExpireTime(String expireTime) {
+        this.expireTime = expireTime;
+    }
+    public String getSealImg1() {
+        return sealImg1;
+    }
+
+    public void setSealImg1(String sealImg1) {
+        this.sealImg1 = sealImg1;
+    }
+
+    public String getAttachImg1() {
+        return attachImg1;
+    }
+
+    public void setAttachImg1(String attachImg1) {
+        this.attachImg1 = attachImg1;
+    }
+}

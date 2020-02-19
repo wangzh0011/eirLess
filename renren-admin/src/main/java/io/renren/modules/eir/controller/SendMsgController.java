@@ -1,0 +1,115 @@
+package io.renren.modules.eir.controller;
+
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import io.renren.common.utils.R;
+import io.renren.modules.miniapp.entity.FormId;
+import io.renren.modules.miniapp.entity.Message;
+import io.renren.modules.miniapp.entity.WXUser;
+import io.renren.modules.miniapp.service.FormIdService;
+import io.renren.modules.miniapp.service.WXUserService;
+import io.renren.modules.miniapp.ws.service.impl.SendMessageTemplateServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+/**
+ * Created by timmy.deng on 2018/11/23.
+ */
+
+
+@RestController
+@RequestMapping("app/send")
+public class SendMsgController {
+
+    @Autowired
+    private SendMessageTemplateServiceImpl sendMessageTemplateService;
+    @Autowired
+    private WXUserService wxUserService;
+
+    @Autowired
+    private FormIdService formIdService;
+
+    private Logger log = LoggerFactory.getLogger(getClass());
+
+    @Deprecated
+    @PostMapping("single")
+    public R sendSingle(Message message){
+
+        String msg = getTemplateMessage(message);
+
+        String result = sendMessageTemplateService.SendMessage(msg);
+
+        return R.ok(result);
+    }
+
+
+    @RequestMapping(value = "all",method = RequestMethod.POST)
+    public R sendAll(Message message){
+
+        String msg = getTemplateMessage(message);
+
+        //批量删除过期数据  2019-07-16 Alan Wang
+        formIdService.delete(new EntityWrapper<FormId>().lt("expire_time",new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())));
+
+        if(!message.getToUser().contains("%allUser%")){
+
+            String result = sendMessageTemplateService.SendMessage(msg);
+
+            log.info("推送模板消息返回的结果："+result);
+
+            return R.ok("推送成功");
+        }else{
+
+            int succeed=0;
+            int fail=0;
+
+            List<WXUser> list = wxUserService.selectList(new EntityWrapper<>());
+            for (WXUser user : list) {
+                StringBuffer buffer=new StringBuffer(msg.replace("%allUser%",user.getOpenid())); //替换车牌号码
+                String result = sendMessageTemplateService.SendMessage(buffer.toString());
+                System.out.println("推送的msg:"+msg);
+                System.out.println(user.getUserName()+"推送结果: "+result);
+                if (result != null && result.contains("\"code\":0")){
+                    succeed+=1;
+                }else {
+                    fail+=1;
+                }
+                System.out.println("user.getUserName() = " + user.getUserName());
+                System.out.println("result = " + result);
+            }
+
+            return R.ok("成功推送:"+succeed+",失败推送:"+fail);
+        }
+
+
+    }
+
+    public String getTemplateMessage(Message message){
+        String msg = "{\"template_id\":\"TEMPLATEID\",\"touser\":\"TOUSER\",\"page\":\"pages/listEir/Eir\",\"data\":{\"keyword5\":{\"color\":\"#EEEE00\",\"value\":\"KEYWORD5\"},\"keyword3\":{\"color\":\"#EEEE00\",\"value\":\"KEYWORD3\"},\"keyword4\":{\"color\":\"#EEEE00\",\"value\":\"KEYWORD4\"},\"keyword1\":{\"color\":\"#EEEE00\",\"value\":\"KEYWORD1\"},\"keyword2\":{\"color\":\"#EEEE00\",\"value\":\"KEYWORD2\"}}}";
+
+        if(message.getTemplateId() != "" && message.getTemplateId() != null) msg = msg.replace("TEMPLATEID",message.getTemplateId());
+
+        if(message.getToUser() != "" && message.getToUser() != null) msg = msg.replace("TOUSER",message.getToUser());
+
+        if(message.getKeyword1() != "" && message.getKeyword1() != null) msg = msg.replace("KEYWORD1",message.getKeyword1());
+
+        if(message.getKeyword2() != "" && message.getKeyword2() != null) msg = msg.replace("KEYWORD2",message.getKeyword2());
+
+        if(message.getKeyword3() != "" && message.getKeyword3() != null) msg = msg.replace("KEYWORD3",message.getKeyword3());
+
+        if(message.getKeyword4() != "" && message.getKeyword4() != null) msg = msg.replace("KEYWORD4",message.getKeyword4());
+
+        if(message.getKeyword5() != "" && message.getKeyword5() != null) msg = msg.replace("KEYWORD5",message.getKeyword5());
+
+        return msg;
+    }
+
+}

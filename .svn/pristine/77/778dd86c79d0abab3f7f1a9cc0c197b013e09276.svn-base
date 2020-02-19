@@ -1,0 +1,446 @@
+package io.renren.modules.miniapp.ws.service.impl;
+
+import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import io.renren.common.utils.R;
+import io.renren.modules.miniapp.entity.HistoryOrder;
+import io.renren.modules.miniapp.entity.Order;
+import io.renren.modules.miniapp.entity.WXUser;
+import io.renren.modules.miniapp.service.HistoryOrderService;
+import io.renren.modules.miniapp.service.OrderService;
+import io.renren.modules.miniapp.service.WXUserService;
+import io.renren.modules.miniapp.until.MessageTemplateUtils;
+import io.renren.modules.miniapp.until.ResultUtils;
+import io.renren.modules.miniapp.ws.service.EirLessHandleService;
+import io.renren.modules.sys.service.SysConfigService;
+import org.apache.commons.beanutils.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.jws.WebService;
+import java.lang.reflect.InvocationTargetException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by timmy.deng on 2018/10/24.
+ */
+@Component
+@WebService
+public class EirLessHandleServiceImpl implements EirLessHandleService {
+
+    @Autowired
+    private OrderService orderService;
+    @Autowired
+    private SysConfigService configService;
+
+    @Autowired
+    MessageTemplateUtils messageTemplateUtils;
+
+    @Autowired
+    WXUserService userService;
+
+    private ResultUtils resultUtils = new ResultUtils();
+
+    @Autowired
+    private HistoryOrderService historyOrderService;
+
+    public SimpleDateFormat format =new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
+
+    @Override
+    public String handle(String mapString) {
+        Map map;
+
+        try {
+            map = JSON.parseObject(mapString, Map.class);
+
+            System.out.println("接收到的参数: " + mapString);
+
+
+        } catch (Exception e) {
+
+            return JSON.toJSONString(resultUtils.Error(-1, "传入的String不能解析为map"));
+        }
+
+        String plate = (String) map.get("plate");
+
+        List<WXUser> wls = userService.selectList(new EntityWrapper<WXUser>().eq("plate", plate));
+
+/*        if (wls.size()==0){
+
+           return JSON.toJSONString(R.error(1,"该车牌未注册小程序"));
+
+        }*/
+
+        if (map.get("type").equals("0")) {
+
+            System.out.println("type值:" + map.get("type"));
+
+            List<Order> ll = orderService.selectList(new EntityWrapper<Order>().eq("plate", map.get("plate")).in("STATE", new Object[]{"1", "2", "3", "4", "7"}));
+
+            //审核不通过的改为已取消
+   /*         List<Order> ls = orderService.selectList(new EntityWrapper<Order>().eq("plate", map.get("plate")).in("STATE", new Object[]{"3"}));
+
+            for (Order l : ls) {
+                l.setState("5");
+            }
+
+            if (ls.size() > 0) {
+
+                orderService.insertOrUpdateBatch(ls);
+            }
+*/
+            System.out.println("该车作业信息条数:" + ll.size());
+
+
+/*            if (ll.size()==0 || ll==null){
+
+                System.out.println("返回信息:"+JSON.toJSONString( resultUtils.Error(1,"未查询到该车作业信息")));
+
+                return JSON.toJSONString( resultUtils.Error(1,"未查询到该车作业信息"));
+            }*/
+            //构造模板信息
+
+            String template_id = configService.getValue("template_id1");
+
+            if (ll.size() != 0 || ll != null) {
+
+
+                for (Order it : ll) {
+
+                    System.out.println("it.getState() = " + it.getState());
+                    System.out.println(it.getState().equals("7"));
+
+
+                        if (it.getState().equals("1")){
+                            System.out.println("预约未审核，请等待审核结果");
+                            if (wls!=null &&wls.size()>0){
+                                for (WXUser l : wls) {
+                                    sendMsg(template_id, "签到失败", plate, "预约未审核，请等待审核结果", l.getOpenid());
+
+                                }
+                            }
+
+                            return JSON.toJSONString(resultUtils.Error(1, "预约未审核，请等待审核结果"));
+
+                        } else if (it.getState().equals("4")) {
+                            System.out.println("存在待取消作业");
+                            if (wls!=null &&wls.size()>0){
+                                for (WXUser l : wls) {
+                                    sendMsg(template_id, "签到失败", plate, "存在待取消的作业，请等待码头审核", l.getOpenid());
+                                }
+                            }
+                            return JSON.toJSONString(resultUtils.Error(1, "存在待取消的作业，请等待码头审核"));
+
+                        } else if (it.getState().equals("3")) {
+
+                            it.setState("5");
+                            orderService.insertOrUpdate(it);
+                            saveHistoryOrder(it);
+
+    /*                        System.out.println("存在审核不通作业");
+                            if (wls!=null &&wls.size()>0){
+                                for (WXUser l : wls) {
+                                    sendMsg(template_id, "签到失败", plate, "存在审核不通过的作业，请修改或取消作业", l.getOpenid());
+                                }
+                            }
+
+                            return JSON.toJSONString(resultUtils.Error(1, "存在审核不通过的作业，请修改或取消作业"));*/
+
+                        } else if (it.getState().equals("7")) {
+                            System.out.println("存在挂起作业");
+                            if (wls!=null &&wls.size()>0){
+                                for (WXUser l : wls) {
+                                    sendMsg(template_id, "签到失败", plate, "存在挂起的待审核的作业，请等待码头审核", l.getOpenid());
+                                }
+                            }
+
+                            return JSON.toJSONString(resultUtils.Error(1, "存在挂起的待审核的作业，请等待码头审核"));
+                        }
+
+
+                }
+
+            }
+
+
+            return JSON.toJSONString(resultUtils.Success("执行触发录单的程序."));
+
+        } else if (map.get("type").equals("1")) {
+            System.out.println("type值:" + map.get("type"));
+
+            String msg = (String) map.get("msg");
+
+            String code = (String) map.get("code");
+
+
+            // String tranType = getTranType((String)map.get("tran-type"),(String) map.get("freight-kind"));
+
+
+            //构造模板信息
+
+            String template_id = configService.getValue("template_id1");
+
+
+
+            System.out.println("code值: " + code);
+            if (code.equals("2") || code.equals("3")) {
+
+                //构造信息发送给司机
+
+                if (code.equals("2")) {
+
+                    if (wls!=null &&wls.size()>0){
+                        for (WXUser l : wls) {
+                            sendMsg(template_id, "签到失败", plate, msg, l.getOpenid());
+                        }
+                    }
+
+
+                    return JSON.toJSONString(R.ok("签到失败"));
+
+                } else if (code.equals("3")) { //签到成功
+
+/*                    Set<String> set = (Set<String>) map.get("TranTypeAndFreightKind");
+
+                    for (String s : set) {
+
+
+
+                    String tranType = getTranType(s.split(";",2)[0],s.split(";",2)[1]);
+
+                    List<Order> ols = orderService.selectList(new EntityWrapper<Order>().eq("plate",map.get("plate")).in("STATE",new Object[]{"1","6"}).eq("tran_type",tranType));
+                    for (Order ol : ols) {
+
+                        ol.setState("9");
+
+                    }
+
+                    orderService.insertOrUpdateBatch(ols);
+                    }*/
+
+/*                    for (WXUser l : wls) {
+                        sendMsg(template_id, "签到成功", plate, msg, l.getOpenid());
+                    }*/
+                    if (wls!=null &&wls.size()>0) {
+                        for (WXUser l : wls) {
+                            sendMsg(template_id, "签到成功", plate, msg, l.getOpenid());
+                        }
+                    }
+
+                    return JSON.toJSONString(R.ok("签到成功"));
+                }
+
+            } else if (code.equals("1")) {
+
+                System.out.println("需要更改作业状态，接收到的参数是:" + mapString);
+
+                List<String> set = (List<String>) map.get("TranTypeAndFreightKind");
+
+                if (set == null || set.size() == 0 || set.isEmpty()) {
+
+
+
+                    return JSON.toJSONString(R.ok("没有需要更改的作业"));
+/*
+                    List<Order> ll = orderService.selectList(new EntityWrapper<Order>().eq("plate", map.get("plate")).in("STATE", new Object[]{"2"}));
+                    System.out.println(ll.size());
+                    System.out.println(ll.get(0).getPlate());
+                    if (ll != null) {
+                        for (Order it : ll) {
+                            it.setState("6");
+                        }
+
+                        orderService.insertOrUpdateBatch(ll);
+                    }
+
+
+                    set = new ArrayList<>();*/
+
+                }
+
+                for (String s : set) {
+
+
+                    String tranType = getTranType(s.split(";", 2)[0], s.split(";", 2)[1]);
+                    List<Order> ll;
+                    System.out.println("转换tranType的值，转换前:" + s + "  转换后:" + tranType);
+                    if (tranType==null){
+
+                        ll = orderService.selectList(new EntityWrapper<Order>().eq("plate", map.get("plate")).in("STATE", new Object[]{"2"}));
+
+                    }else {
+                        ll = orderService.selectList(new EntityWrapper<Order>().eq("plate", map.get("plate")).in("STATE", new Object[]{"2"}).eq("tran_type", tranType));
+
+                    }
+
+
+
+
+                    for (Order it : ll) {
+                        System.out.println("改为待进闸确认id:"+it.getId());
+                        it.setState("6");
+                        saveHistoryOrder(it);
+                    }
+              if (ll!=null && ll.size()>0){
+                  orderService.insertOrUpdateBatch(ll);
+              }
+
+
+                }
+
+                if (wls!=null &&wls.size()>0) {
+                    for (WXUser l : wls) {
+                        sendMsg(template_id, "签到失败", plate, msg, l.getOpenid());
+                    }
+                }
+                return JSON.toJSONString(R.ok("签到失败"));
+
+            }
+
+        } else if (map.get("type").equals("2")) {
+            System.out.println("type值:" + map.get("type"));
+
+            List<Order> ll = orderService.selectList(new EntityWrapper<Order>().eq("plate", map.get("plate")).in("STATE", new Object[]{"2", 6}));
+            for (Order it : ll) {
+                it.setState("9");
+                saveHistoryOrder(it);
+            }
+            if (ll != null && ll.size() > 0) {
+                orderService.insertOrUpdateBatch(ll);
+            }
+
+            return JSON.toJSONString(R.ok("已更改" + plate + "的作业状态."));
+
+        }
+
+        return JSON.toJSONString(resultUtils.Error("未处理,发送过来的信息为:" + mapString));
+
+    }
+
+
+    public String getTranType(String tranType, String freightKind) {
+        String type = "";
+
+        if (freightKind == null || "null".equals(freightKind)) {
+
+            switch (tranType.trim()) {
+                case "PUI":
+                    return "DF";
+                case "PUE":
+                    return "DF";
+                case "PUM":
+                    return "DE";
+                case "DOE":
+                    return "RF";
+                case "DOM":
+                    return "RE";
+            }
+        } else {
+            switch (tranType.trim()) {
+
+                case "PUI":
+                    type = "D";
+                    break;
+
+                case "PUE":
+                    type = "D";
+                    break;
+                case "PUM":
+                    type = "D";
+                    break;
+                case "DOE":
+                    type = "R";
+                    break;
+                case "DOM":
+                    type = "R";
+                break;
+                default: return null;
+            }
+            switch (freightKind.trim()) {
+
+                case "FCL":
+                    return type + "F";
+                case "MTY":
+                    return type + "E";
+
+                default:return null;
+            }
+        }
+        return null;
+    }
+
+    public String sendMsg(String template_id, String title, String plate, String msg, String openid) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("touser", openid);
+        map.put("template_id", template_id);
+        map.put("page", "pages/listEir/Eir");
+        Map<String, Object> data = new HashMap<String, Object>();
+        Map<String, String> keyword1 = new HashMap<String, String>();
+        Map<String, String> keyword2 = new HashMap<String, String>();
+        Map<String, String> keyword3 = new HashMap<String, String>();
+
+        keyword1.put("value", title);
+
+        keyword1.put("color", "#EEEE00");
+
+        keyword2.put("value", plate);
+        keyword2.put("color", "#EEEE00");
+
+        keyword3.put("value", msg);
+        keyword3.put("color", "#EEEE00");
+
+        data.put("keyword1", keyword1);
+        data.put("keyword2", keyword2);
+        data.put("keyword3", keyword3);
+
+        map.put("data", data);
+
+        String result = messageTemplateUtils.sendMessageTemplate(map);
+
+        return result;
+
+
+    }
+    public void saveHistoryOrder(Order order){
+        HistoryOrder hi = new HistoryOrder();
+        try {
+            BeanUtils.copyProperties(hi,order);
+            hi.setUpdateTime(format.format(new Date()));
+            hi.setOrderId(order.getId());
+
+            hi.setOperator("系统处理");
+            if ("6".equals(order.getState())){
+                hi.setRemark("司机签到改为待进闸确认.");
+            }
+            if ("9".equals(order.getState())){
+                hi.setRemark("产生小票改为待复核.");
+            }
+            if("5".equals(order.getState())){
+                hi.setRemark("司机签到,系统自动处理将审核不通过改为已取消");
+            }
+
+            historyOrderService.insert(hi);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public static void main(String[] args) {
+        Map map = new HashMap();
+        System.out.println((String) map.get("dada"));
+
+        ResultUtils resultUtils = new ResultUtils();
+
+
+        System.out.println(JSON.toJSONString(resultUtils.Error(1, "未查询到该车作业信息")));
+
+        System.out.println(JSON.parseObject(JSON.toJSONString(resultUtils.Error(1, "未查询到该车作业信息")), Map.class).get("code"));
+    }
+}

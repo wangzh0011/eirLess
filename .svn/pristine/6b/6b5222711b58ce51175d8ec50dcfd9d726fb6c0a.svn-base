@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>驳船报到列表</title>
+    <#include "/header.html">
+
+</head>
+<body>
+<div id="rrapp" v-cloak>
+    <div>
+        <div class="grid-btn">
+            <a class="btn btn-default" @click="reload">刷新数据</a>
+            <!--<input type="radio" name="site" @click="site_D">内贸-->
+            <!--<input type="radio" name="site" @click="site_I">外贸-->
+            <!--<input type="radio" name="site" @click="site" checked="checked">全部-->
+        </div>
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+    </div>
+</div>
+<script type="text/javascript" src="${request.contextPath}/statics/libs/jquery.cookie.js"></script>
+
+<script src="${request.contextPath}/statics/js/modules/sys/etaList.js?_${.now?long}"></script>
+</body>
+</html>

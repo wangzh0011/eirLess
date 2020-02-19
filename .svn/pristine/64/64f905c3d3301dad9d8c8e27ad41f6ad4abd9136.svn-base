@@ -1,0 +1,12 @@
+package io.renren.modules.miniapp.service.impl;
+
+import com.baomidou.mybatisplus.service.impl.ServiceImpl;
+import io.renren.modules.miniapp.dao.LtrScheduleDao;
+import io.renren.modules.miniapp.entity.LtrSchedule;
+import io.renren.modules.miniapp.service.LtrScheduleService;
+import org.springframework.stereotype.Service;
+
+@Service
+public class LtrScheduleServiceImpl extends ServiceImpl<LtrScheduleDao, LtrSchedule> implements LtrScheduleService {
+
+}

@@ -1,0 +1,70 @@
+package io.renren.modules.miniapp.controller;
+
+import io.renren.common.utils.R;
+import io.renren.modules.miniapp.entity.HistoryYardPlan;
+import io.renren.modules.miniapp.entity.Suggest;
+import io.renren.modules.miniapp.entity.YardPlan;
+import io.renren.modules.miniapp.service.HistoryYardPlanService;
+import io.renren.modules.miniapp.service.SuggestService;
+import io.renren.modules.miniapp.service.YardPlanService;
+import io.renren.modules.sys.entity.SysUserEntity;
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.shiro.SecurityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.lang.reflect.InvocationTargetException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+@RestController
+@RequestMapping("/miniApp")
+public class CustomerController {
+
+    @Autowired
+    private SuggestService suggestService;
+
+    @Autowired
+    private YardPlanService yardPlanService;
+
+    @Autowired
+    private HistoryYardPlanService historyYardPlanService;
+
+
+    @RequestMapping("/suggest")
+    public R getSuggest(Suggest suggest){
+        if(suggestService.insert(suggest)){
+            return R.ok();
+        }
+        return R.error("系统异常");
+    }
+
+    @RequestMapping("/yardPlan")
+    public R getYardPlan(YardPlan yardPlan){
+        if(yardPlanService.insert(yardPlan)){
+            if(saveHistoryInfo(yardPlan))
+            return R.ok();
+        }
+        return R.error("系统异常");
+    }
+
+    public boolean saveHistoryInfo(YardPlan yardPlan){
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
+        try {
+            HistoryYardPlan historyYardPlan = new HistoryYardPlan();
+            //将yardPlan复制到historyYardPlan
+            BeanUtils.copyProperties(historyYardPlan, yardPlan);
+            historyYardPlan.setYardPlanId(yardPlan.getId());
+            historyYardPlan.setUpdateTime(format.format(new Date()));
+
+            historyYardPlan.setOperator("司机");
+            return historyYardPlanService.insert(historyYardPlan);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+}

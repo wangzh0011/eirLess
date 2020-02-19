@@ -1,0 +1,151 @@
+package io.renren.modules.eir.until;
+
+import com.alibaba.fastjson.JSON;
+import io.renren.modules.miniapp.entity.Order;
+import io.renren.modules.miniapp.entity.Suggest;
+import io.renren.modules.miniapp.entity.YardPlan;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * 推送微信模板消息工具类
+ */
+public class SendTemplateMessageUtil {
+
+    /**
+     * 预约推送
+     * @param order
+     * @param remark
+     * @param template_id
+     * @param title
+     * @param position
+     * @return
+     */
+    public static Map sendWxMsg(Order order, String remark, String template_id, String title, String position){
+        Map<String,Object> map = new HashMap<>();
+        map.put("touser",order.getOpenId());
+        map.put("template_id",template_id);
+        map.put("page","pages/listEir/Eir");
+        Map<String, Object> data = new HashMap<String, Object>();
+        Map<String, String> keyword1 = new HashMap<String, String>();
+        Map<String, String> keyword2 = new HashMap<String, String>();
+        Map<String, String> keyword3 = new HashMap<String, String>();
+        Map<String, String> keyword4 = new HashMap<String, String>();
+        Map<String, String> keyword5 = new HashMap<String, String>();
+
+
+        keyword1.put("value", title);
+
+        keyword1.put("color", "#EEEE00");
+
+        keyword2.put("value", position);
+        keyword2.put("color", "#EEEE00");
+
+        keyword3.put("value", order.getAppointmentTime());
+        keyword3.put("color", "#EEEE00");
+
+        keyword4.put("value", order.getPlate());
+        keyword4.put("color", "#EEEE00");
+
+        keyword5.put("value", remark);
+        keyword5.put("color", "#EEEE00");
+
+        data.put("keyword1", keyword1);
+        data.put("keyword2", keyword2);
+        data.put("keyword3", keyword3);
+        data.put("keyword4", keyword4);
+        data.put("keyword5", keyword5);
+
+        map.put("data",data);
+
+        System.out.println(JSON.toJSON(map).toString());
+
+
+        return map;
+    }
+
+
+    /**
+     * 堆场机械
+     * @param yardPlan
+     * @param template_id
+     * @return
+     */
+    public static Map sendWxMsg(YardPlan yardPlan, String template_id){
+        Map<String,Object> map = new HashMap<>();
+        map.put("touser",yardPlan.getOpenId());
+        map.put("template_id",template_id);
+        map.put("page","pages/listEir/Eir");
+        Map<String, Object> data = new HashMap<String, Object>();
+        Map<String, String> keyword1 = new HashMap<String, String>();
+        Map<String, String> keyword2 = new HashMap<String, String>();
+        Map<String, String> keyword3 = new HashMap<String, String>();
+        Map<String, String> keyword4 = new HashMap<String, String>();
+
+
+        keyword1.put("value", yardPlan.getPlate());
+
+        keyword1.put("color", "#EEEE00");
+
+        keyword2.put("value", yardPlan.getLocation());
+        keyword2.put("color", "#EEEE00");
+
+        keyword3.put("value", yardPlan.getIssueType());
+        keyword3.put("color", "#EEEE00");
+
+        keyword4.put("value", yardPlan.getRemark());
+        keyword4.put("color", "#EEEE00");
+
+        data.put("keyword1", keyword1);
+        data.put("keyword2", keyword2);
+        data.put("keyword3", keyword3);
+        data.put("keyword4", keyword4);
+
+        map.put("data",data);
+
+        return map;
+    }
+
+
+    /**
+     * 建议反馈
+     * @param suggest
+     * @param template_id
+     * @return
+     */
+    public static Map sendWxMsg(Suggest suggest, String template_id){
+        Map<String,Object> map = new HashMap<>();
+        map.put("touser",suggest.getOpenId());
+        map.put("template_id",template_id);
+        map.put("page","pages/listEir/Eir");
+        Map<String, Object> data = new HashMap<String, Object>();
+        Map<String, String> keyword1 = new HashMap<String, String>();
+        Map<String, String> keyword2 = new HashMap<String, String>();
+        Map<String, String> keyword3 = new HashMap<String, String>();
+        Map<String, String> keyword4 = new HashMap<String, String>();
+
+
+        keyword1.put("value", suggest.getSuggest());
+
+        keyword1.put("color", "#EEEE00");
+
+        keyword2.put("value", suggest.getCreateTime());
+        keyword2.put("color", "#EEEE00");
+
+        keyword3.put("value", suggest.getRemark());
+        keyword3.put("color", "#EEEE00");
+
+        keyword4.put("value", suggest.getHandleTime());
+        keyword4.put("color", "#EEEE00");
+
+        data.put("keyword1", keyword1);
+        data.put("keyword2", keyword2);
+        data.put("keyword3", keyword3);
+        data.put("keyword4", keyword4);
+
+        map.put("data",data);
+
+        return map;
+    }
+}

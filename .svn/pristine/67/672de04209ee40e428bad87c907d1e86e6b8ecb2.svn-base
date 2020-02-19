@@ -1,0 +1,104 @@
+// /*
+// $(function () {
+//
+//     var colunms = Menu.initColumn();
+//
+//
+//     var table = new TreeTable(Menu.id, baseURL+'/eir/customer/suggestList', colunms);
+//     table.setExpandColumn(2);
+//     table.setIdField("id");
+//     table.setCodeField("id");
+//     table.setParentCodeField("id");
+//     table.setHeight(800);
+//     table.init();
+//     Menu.table = table;
+//     setInterval(refresh, 20000);
+// });
+// var Menu = {
+//     id: "menuTable",
+//     table: null,
+//     layerIndex: -1
+// };
+// //var table;
+// /!**
+//  * 初始化表格的列
+//  *!/
+//
+//
+// Menu.initColumn = function () {
+//     var columns = [
+//
+//         {title: 'id', field: 'id',  width: '75px'},
+//         {title: '用户', field: 'userName',   sortable: false, width: '50px'},
+//         {title: '车牌号码', field: 'plate',  sortable: false, width: '50px',},
+//         {title: '投诉与建议', field: 'suggest',  sortable: false, width: '100px',},
+//         {title: '创建时间', field: 'createTime',  sortable: false, width: '45px',}
+//
+//     ];
+//     return columns;
+// };
+//
+// */
+
+
+$(function  () {
+    $("#jqGrid").jqGrid({
+        url: baseURL + 'eir/customer/suggestList',
+        datatype: "json",
+        colModel: [
+            { label: 'id', name: 'id', width: 50, key: true },
+            { label: '用户', name: 'userName', width: 30 },
+            { label: '车牌号码', name: 'plate', width: 30 },
+            { label: '投诉与建议', name: 'suggest', width: 100 },
+            { label: '创建时间', name: 'createTime', width: 60 },
+        ],
+        viewrecords: true,
+        height: 685,
+        rowNum: 10,
+        rowList : [10,20,60],
+        rownumbers: true,
+        rownumWidth: 25,
+        autowidth:true,
+        multiselect: false,
+        pager: "#jqGridPager",
+        jsonReader : {
+            root: "page.list",
+            page: "page.currPage",
+            total: "page.totalPage",
+            records: "page.totalCount"
+        },
+        prmNames : {
+            page:"page",
+            rows:"limit",
+            order: "order"
+        },
+        gridComplete:function(){
+            //隐藏grid底部滚动条
+            $("#jqGrid").closest(".ui-jqgrid-bdiv").css({ "overflow-x" : "hidden" });
+        }
+    });
+});
+var vm = new Vue({
+    el:'#rrapp',
+    data:{
+        q:{
+            key: "",
+        },
+    },
+    mounted : function(){
+        console.log("初始化")
+        this.update();
+    },
+    methods: {
+        reload: function (event) {
+            var page = $("#jqGrid").jqGrid('getGridParam','page');
+            $("#jqGrid").jqGrid('setGridParam',{
+                postData:{'key': this.q.key},
+                page:page
+            }).trigger("reloadGrid");
+        },
+    },
+    created:function(){
+
+    },
+});
