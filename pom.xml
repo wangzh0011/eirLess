@@ -38,7 +38,7 @@
         -->
         <!-- 高版本 mysql 驱动-->
 
-        <mysql.version>8.0.11</mysql.version>
+        <mysql.version>8.0.16</mysql.version>
 
 
         <mssql.version>4.0</mssql.version>
